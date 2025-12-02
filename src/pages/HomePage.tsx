@@ -1,20 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PropertyCard } from '../components/inmobiliaria/PropertyCard';
 import { AdvisoryCardStack } from '../components/inmobiliaria/AdvisoryCardStack';
-import { properties } from '../data/properties';
+import { getHighlightedProperties } from '../services/propertyService';
+import type { Property } from '../types/property';
 
 export const HomePage: React.FC = () => {
-    const [currentIndex, setCurrentIndex] = React.useState(0);
-    const [isPaused, setIsPaused] = React.useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+    const [randomProperties, setRandomProperties] = useState<Property[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Randomly shuffle and select 6 properties on first render
-    const [randomProperties] = React.useState(() => {
-        const highlighted = properties.filter(p => p.highlighted);
-        return highlighted.sort(() => Math.random() - 0.5).slice(0, 6);
-    });
+    // Load highlighted properties from Firebase
+    useEffect(() => {
+        const loadProperties = async () => {
+            try {
+                const highlighted = await getHighlightedProperties();
+                const shuffled = highlighted.sort(() => Math.random() - 0.5).slice(0, 6);
+                setRandomProperties(shuffled);
+            } catch (error) {
+                console.error('Error loading highlighted properties:', error);
+                setRandomProperties([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadProperties();
+    }, []);
 
     // Auto-rotate every 6 seconds using modulo for true infinite loop
     React.useEffect(() => {
@@ -83,29 +98,39 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Responsive Infinite Carousel */}
-                <div
-                    className="relative overflow-hidden"
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                >
-                    {/* Responsive: 1 card on mobile, 2 on tablet, 3 on desktop */}
-                    <div
-                        className="flex transition-transform duration-700 ease-in-out"
-                        style={{
-                            transform: `translateX(-${currentIndex * 100}%)`,
-                        }}
-                    >
-                        {/* Triple rendering for seamless infinite loop */}
-                        {[...randomProperties, ...randomProperties, ...randomProperties].map((property, idx) => (
-                            <div
-                                key={`${property.id}-${idx}`}
-                                className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 px-3"
-                            >
-                                <PropertyCard property={property} />
-                            </div>
-                        ))}
+                {loading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <p className="text-[var(--color-text-light)] text-lg">Cargando propiedades...</p>
                     </div>
-                </div>
+                ) : randomProperties.length === 0 ? (
+                    <div className="text-center py-12">
+                        <p className="text-[var(--color-text-light)]">No hay propiedades destacadas disponibles</p>
+                    </div>
+                ) : (
+                    <div
+                        className="relative overflow-hidden"
+                        onMouseEnter={() => setIsPaused(true)}
+                        onMouseLeave={() => setIsPaused(false)}
+                    >
+                        {/* Responsive: 1 card on mobile, 2 on tablet, 3 on desktop */}
+                        <div
+                            className="flex transition-transform duration-700 ease-in-out"
+                            style={{
+                                transform: `translateX(-${currentIndex * 100}%)`,
+                            }}
+                        >
+                            {/* Triple rendering for seamless infinite loop */}
+                            {[...randomProperties, ...randomProperties, ...randomProperties].map((property, idx) => (
+                                <div
+                                    key={`${property.id}-${idx}`}
+                                    className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 px-3"
+                                >
+                                    <PropertyCard property={property} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
             </section>
         </div>
