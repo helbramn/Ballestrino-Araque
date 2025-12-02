@@ -1,0 +1,194 @@
+import type { Property } from '../types/property';
+
+// ⚠️ ARCHIVO GENERADO AUTOMÁTICAMENTE
+// No edites este archivo directamente. Edita properties.yml y ejecuta: npm run update-properties
+
+export const properties: Property[] = [
+  {
+    "id": "1",
+    "title": "Casa de piedra con jardín",
+    "description": "Hermosa casa de piedra rústica completamente restaurada con jardín privado y vistas a la sierra. Ideal para desconectar y disfrutar de la naturaleza.",
+    "price": 385000,
+    "zone": "Segovia",
+    "type": "Casa Rústica",
+    "area": 240,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "operation": "venta",
+    "highlighted": true,
+    "mainImage": "/assets/property1.jpg",
+    "images": [
+      "/assets/property1.jpg"
+    ]
+  },
+  {
+    "id": "2",
+    "title": "Masía tradicional restaurada",
+    "description": "Masía tradicional completamente restaurada manteniendo su carácter original con materiales nobles. Amplios espacios y luz natural.",
+    "price": 520000,
+    "zone": "La Granja",
+    "type": "Masía",
+    "area": 320,
+    "bedrooms": 5,
+    "bathrooms": 4,
+    "operation": "venta",
+    "highlighted": true,
+    "mainImage": "/assets/property2.jpg",
+    "images": [
+      "/assets/property2.jpg"
+    ]
+  },
+  {
+    "id": "3",
+    "title": "Cortijo con finca",
+    "description": "Cortijo rústico con amplia finca, perfecto para amantes de la naturaleza y tranquilidad. Posibilidad de explotación agrícola.",
+    "price": 2500,
+    "zone": "El Espinar",
+    "type": "Cortijo",
+    "area": 450,
+    "bedrooms": 6,
+    "bathrooms": 5,
+    "operation": "alquiler",
+    "highlighted": true,
+    "mainImage": "/assets/property3.jpg",
+    "images": [
+      "/assets/property3.jpg"
+    ]
+  },
+  {
+    "id": "4",
+    "title": "Casa de pueblo en Sepúlveda",
+    "description": "Casa de pueblo totalmente rehabilitada en el corazón de Sepúlveda. Alquiler con opción a compra tras 2 años.",
+    "price": 1800,
+    "zone": "Sepúlveda",
+    "type": "Casa de Pueblo",
+    "area": 180,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "operation": "opcion_compra",
+    "highlighted": true,
+    "mainImage": "/assets/property4.jpg",
+    "images": [
+      "/assets/property4.jpg"
+    ]
+  },
+  {
+    "id": "5",
+    "title": "Casa rural con terreno",
+    "description": "Encantadora casa rural con 5000m² de terreno. Perfecta para desconectar y disfrutar del campo. Alquiler con opción a compra.",
+    "price": 1500,
+    "zone": "Riaza",
+    "type": "Casa Rural",
+    "area": 200,
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "operation": "opcion_compra",
+    "highlighted": true,
+    "mainImage": "/assets/property5.jpg",
+    "images": [
+      "/assets/property5.jpg"
+    ]
+  },
+  {
+    "id": "6",
+    "title": "Casa con vistas al Alcázar",
+    "description": "Excepcional casa con vistas directas al Alcázar. Alquiler mensual con opción de compra.",
+    "price": 2200,
+    "zone": "Segovia Capital",
+    "type": "Casa",
+    "area": 180,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "operation": "opcion_compra",
+    "highlighted": true,
+    "mainImage": "/assets/property6.jpg",
+    "images": [
+      "/assets/property6.jpg"
+    ]
+  },
+  {
+    "id": "7",
+    "title": "Apartamento moderno",
+    "description": "Apartamento recién reformado en zona céntrica. Luminoso y con todas las comodidades.",
+    "price": 195000,
+    "zone": "Segovia",
+    "type": "Apartamento",
+    "area": 85,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "operation": "venta",
+    "highlighted": false,
+    "mainImage": "/assets/property7.jpg",
+    "images": [
+      "/assets/property7.jpg"
+    ]
+  },
+  {
+    "id": "8",
+    "title": "Finca con olivos",
+    "description": "Espectacular finca de 10 hectáreas con olivar en producción. Casa rural incluida.",
+    "price": 680000,
+    "zone": "El Espinar",
+    "type": "Finca",
+    "area": 250,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "operation": "venta",
+    "highlighted": false,
+    "mainImage": "/assets/property8.jpg",
+    "images": [
+      "/assets/property8.jpg"
+    ]
+  },
+  {
+    "id": "9",
+    "title": "Chalet adosado",
+    "description": "Chalet adosado en urbanización tranquila. Jardín privado y garaje.",
+    "price": 285000,
+    "zone": "La Granja",
+    "type": "Chalet",
+    "area": 160,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "operation": "venta",
+    "highlighted": false,
+    "mainImage": "/assets/property9.jpg",
+    "images": [
+      "/assets/property9.jpg"
+    ]
+  },
+  {
+    "id": "10",
+    "title": "Local comercial",
+    "description": "Local comercial en zona de alto tránsito. Ideal para negocio.",
+    "price": 1200,
+    "zone": "Segovia",
+    "type": "Local Comercial",
+    "area": 100,
+    "bedrooms": 0,
+    "bathrooms": 1,
+    "operation": "alquiler",
+    "highlighted": false,
+    "mainImage": "/assets/property10.jpg",
+    "images": [
+      "/assets/property10.jpg"
+    ]
+  },
+  {
+    "id": "11",
+    "title": "Casa señorial",
+    "description": "Impresionante casa señorial del siglo XVIII completamente restaurada.",
+    "price": 890000,
+    "zone": "Sepúlveda",
+    "type": "Casa Señorial",
+    "area": 420,
+    "bedrooms": 6,
+    "bathrooms": 4,
+    "operation": "venta",
+    "highlighted": false,
+    "mainImage": "/assets/property11.jpg",
+    "images": [
+      "/assets/property11.jpg"
+    ]
+  }
+];
