@@ -11,5 +11,14 @@ export interface Property {
     description: string;
     mainImage: string;
     images: string[];
+    features?: string[];
+    location?: {
+        lat: number;
+        lng: number;
+        address?: string;
+    };
     highlighted?: boolean;
+    town?: string;
+    energyCertificate?: string;
+    isVIP?: boolean;
 }

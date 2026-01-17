@@ -1,0 +1,224 @@
+import { useEffect, useState } from 'react';
+import { getEncargos, deleteEncargo, updateEncargo, seedEncargos, deleteAllEncargos } from '../../services/encargoService';
+import type { Encargo } from '../../types/encargo';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Trash2, Phone, Mail, MapPin, Calendar, Euro, Eye, EyeOff } from 'lucide-react';
+
+export const AdminEncargosList = () => {
+    const [encargos, setEncargos] = useState<Encargo[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const loadEncargos = async () => {
+        try {
+            setLoading(true);
+            const data = await getEncargos();
+            setEncargos(data);
+        } catch (error) {
+            console.error('Error loading encargos:', error);
+            alert('Error al cargar los encargos');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadEncargos();
+    }, []);
+
+    const handleTogglePublish = async (encargo: Encargo) => {
+        if (!encargo.id) return;
+
+        try {
+            await updateEncargo(encargo.id, { published: !encargo.published });
+            await loadEncargos();
+        } catch (error) {
+            console.error('Error updating encargo:', error);
+            alert('Error al actualizar el estado del encargo');
+        }
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        if (!window.confirm(`¿Estás seguro de eliminar el encargo de "${name}"?\nEsta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        try {
+            await deleteEncargo(id);
+            await loadEncargos();
+            alert('Encargo eliminado correctamente');
+        } catch (error: any) {
+            console.error('Error deleting encargo:', error);
+            alert(`Error al eliminar el encargo: ${error.message || 'Desconocido'}`);
+        }
+    };
+
+    const handleSeed = async () => {
+        if (!confirm('¿Quieres generar 5 encargos de prueba?')) return;
+        try {
+            setLoading(true);
+            await seedEncargos();
+            await loadEncargos();
+            alert('Datos de prueba generados correctamente');
+        } catch (error) {
+            console.error('Error seeding encargos:', error);
+            alert('Error al generar datos de prueba');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-[var(--color-text-light)] text-lg">Cargando encargos...</p>
+            </div>
+        );
+    }
+
+    if (encargos.length === 0) {
+        return (
+            <Card className="p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Mail className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No hay encargos</h3>
+                <p className="text-[var(--color-text-light)] mb-6">
+                    Aún no has recibido ninguna solicitud de búsqueda.
+                </p>
+                <Button onClick={handleSeed} variant="secondary">
+                    Generar Datos de Prueba
+                </Button>
+            </Card>
+        );
+    }
+
+    const handleDeleteAll = async () => {
+        if (!confirm('¿Estás SEGURO de borrar TODOS los encargos?')) return;
+        try {
+            setLoading(true);
+            await deleteAllEncargos();
+            await loadEncargos();
+            alert('Todos los encargos han sido eliminados');
+        } catch (error) {
+            console.error('Error deleting all encargos:', error);
+            alert('Error al eliminar todos los encargos');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="grid gap-4">
+            <div className="flex justify-end mb-4">
+                <Button onClick={handleDeleteAll} variant="secondary" className="text-red-600 hover:bg-red-50">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Borrar Todo
+                </Button>
+            </div>
+            {encargos.map((encargo) => (
+                <Card key={encargo.id} className={`p-6 transition-colors ${encargo.published ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-gray-200'}`}>
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                        <div className="flex-1 w-full">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+                                <h3 className="font-semibold text-lg">{encargo.name}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${encargo.operation === 'venta' ? 'bg-green-100 text-green-800' :
+                                        encargo.operation === 'alquiler' ? 'bg-blue-100 text-blue-800' :
+                                            'bg-purple-100 text-purple-800'
+                                        }`}>
+                                        {encargo.operation === 'opcion_compra' ? 'Opción Compra' : encargo.operation}
+                                    </span>
+                                    {encargo.published && (
+                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                                            <Eye className="w-3 h-3" />
+                                            Publicado
+                                        </span>
+                                    )}
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {encargo.createdAt?.seconds ? new Date(encargo.createdAt.seconds * 1000).toLocaleDateString() : 'Fecha desconocida'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div className="space-y-1 text-sm text-[var(--color-text-light)]">
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-4 h-4" />
+                                        <a href={`tel:${encargo.phone}`} className="hover:text-[var(--color-primary)]">{encargo.phone}</a>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        <a
+                                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encargo.email}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-[var(--color-primary)]"
+                                        >
+                                            {encargo.email}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div className="space-y-1 text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">Busca:</span>
+                                        {encargo.type || 'Cualquier tipo'}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-gray-400" />
+                                        {encargo.zone || 'Cualquier zona'}
+                                    </div>
+                                    {/* Price logic */}
+                                    <div className="flex items-center gap-2">
+                                        <Euro className="w-4 h-4 text-gray-400" />
+                                        {encargo.priceMin && encargo.priceMax
+                                            ? `${encargo.priceMin.toLocaleString()} - ${encargo.priceMax.toLocaleString()} €`
+                                            : encargo.priceMax
+                                                ? `Hasta ${encargo.priceMax.toLocaleString()} €`
+                                                : 'Presupuesto a consultar'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {encargo.description && (
+                                <div className="bg-gray-50 p-3 rounded-lg text-sm text-[var(--color-text)] italic border border-gray-100 whitespace-pre-wrap">
+                                    "{encargo.description}"
+                                </div>
+                            )}
+
+                            {(encargo.bedrooms || encargo.bathrooms) && (
+                                <div className="mt-3 flex gap-4 text-sm text-gray-500">
+                                    {encargo.bedrooms && <span>🛏️ Min {encargo.bedrooms} hab</span>}
+                                    {encargo.bathrooms && <span>🚿 Min {encargo.bathrooms} baños</span>}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
+                            <Button
+                                variant={encargo.published ? "secondary" : "primary"}
+                                size="sm"
+                                onClick={() => handleTogglePublish(encargo)}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 ${encargo.published ? 'text-gray-600' : ''}`}
+                            >
+                                {encargo.published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                {encargo.published ? 'Ocultar' : 'Publicar'}
+                            </Button>
+
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => encargo.id && handleDelete(encargo.id, encargo.name)}
+                                className="flex-1 md:flex-none text-red-600 hover:bg-red-50 flex items-center gap-2 justify-center"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Eliminar
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            ))}
+        </div>
+    );
+};

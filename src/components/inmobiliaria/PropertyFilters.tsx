@@ -21,7 +21,8 @@ export const PropertyFilters: React.FC<PropertyFiltersProps> = ({ filters, onFil
                     options={[
                         { value: 'all', label: 'Todas' },
                         { value: 'venta', label: 'Venta' },
-                        { value: 'alquiler', label: 'Alquiler' }
+                        { value: 'alquiler', label: 'Alquiler' },
+                        { value: 'opcion_compra', label: 'Alquiler con opción a compra' }
                     ]}
                 />
 
@@ -44,7 +45,7 @@ export const PropertyFilters: React.FC<PropertyFiltersProps> = ({ filters, onFil
                     onChange={(e) => onFilterChange('type', e.target.value)}
                     options={[
                         { value: 'all', label: 'Todos los tipos' },
-                        { value: 'Casa Rústica', label: 'Casa Rústica' },
+                        { value: 'Casa de Pueblo', label: 'Casa de Pueblo' },
                         { value: 'Masía', label: 'Masía' },
                         { value: 'Cortijo', label: 'Cortijo' },
                         { value: 'Piso', label: 'Piso' }

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import type { Property } from '../../types/property';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
-import { MapPin, Ruler, BedDouble, Bath, ArrowRight, Home } from 'lucide-react';
+import { FavoriteButton } from '../ui/FavoriteButton';
+import { MapPin, Ruler, BedDouble, Bath } from 'lucide-react';
 
 interface PropertyCardProps {
     property: Property;
@@ -15,29 +15,49 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <Card hover className="flex flex-col h-full group transition-all duration-300 hover:shadow-xl">
             {/* Image */}
             <Link to={`/propiedad/${property.id}`} className="block relative mb-4 aspect-[4/3] overflow-hidden rounded-[var(--radius-md)]">
-                {/* Placeholder for real image or gradient fallback */}
-                <div className="h-full w-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-accent)] to-[var(--color-secondary)] flex items-center justify-center text-white group-hover:scale-105 transition-transform duration-500">
-                    <Home className="w-12 h-12 opacity-50" />
-                </div>
+                {property.mainImage ? (
+                    <img
+                        src={property.mainImage}
+                        alt={property.title}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                ) : (
+                    <img
+                        src={`/properties/prop${(property.id.length % 4) + 1}.png`}
+                        alt={property.title}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                )}
 
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                    {/* Operation Type Badge */}
-                    <Badge
-                        variant={property.operation === 'opcion_compra' ? 'accent' : 'default'}
-                        className={`${property.operation === 'venta' ? 'bg-emerald-600 text-white' :
-                            property.operation === 'alquiler' ? 'bg-blue-600 text-white' :
-                                'bg-gradient-to-r from-blue-600 to-emerald-600 text-white animate-pulse'
-                            } backdrop-blur-sm shadow-lg font-bold ${property.operation === 'opcion_compra' ? 'text-xs' : ''}`}
-                    >
-                        {property.operation === 'venta' ? '● VENTA' :
-                            property.operation === 'alquiler' ? '● ALQUILER' :
-                                'ALQUILER+VENTA'}
-                    </Badge>
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+                    <div className="flex flex-col gap-2">
+                        {/* Operation Type Badge */}
+                        <Badge
+                            variant={property.operation === 'opcion_compra' ? 'accent' : 'default'}
+                            className={`${property.operation === 'venta' ? 'bg-emerald-600 text-white' :
+                                property.operation === 'alquiler' ? 'bg-blue-600 text-white' :
+                                    'bg-gradient-to-r from-blue-600 to-emerald-600 text-white animate-pulse'
+                                } backdrop-blur-sm shadow-lg font-bold ${property.operation === 'opcion_compra' ? 'text-xs' : ''}`}
+                        >
+                            {property.operation === 'venta' ? '● VENTA' :
+                                property.operation === 'alquiler' ? '● ALQUILER' :
+                                    'ALQUILER+VENTA'}
+                        </Badge>
 
-                    {/* Price Badge */}
-                    <Badge variant="accent" className="bg-white/95 backdrop-blur-sm shadow-lg font-bold text-[var(--color-primary)]">
-                        {property.price.toLocaleString('es-ES')} €{property.operation !== 'venta' && '/mes'}
-                    </Badge>
+                        {/* VIP Badge */}
+                        {property.isVIP && (
+                            <Badge className="bg-[#D4AF37] text-white border-none shadow-lg font-bold animate-pulse flex items-center gap-1">
+                                💎 COLECCIÓN PREMIUM
+                            </Badge>
+                        )}
+
+                        {/* Price Badge */}
+                        <Badge variant="accent" className="bg-white/95 backdrop-blur-sm shadow-lg font-bold text-[var(--color-primary)] w-fit">
+                            {property.price.toLocaleString('es-ES')} €{property.operation !== 'venta' && '/mes'}
+                        </Badge>
+                    </div>
+
+                    <FavoriteButton propertyId={property.id} />
                 </div>
             </Link>
 
@@ -69,16 +89,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                 <p className="text-sm leading-relaxed text-[var(--color-text-light)] line-clamp-2">
                     {property.description}
                 </p>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-4 pt-2">
-                <Link to={`/propiedad/${property.id}`} className="w-full block">
-                    <Button variant="secondary" className="w-full group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors flex items-center justify-center gap-2">
-                        Ver Detalles
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </Link>
             </div>
         </Card>
     );

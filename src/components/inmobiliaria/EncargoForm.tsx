@@ -14,7 +14,7 @@ export const EncargoForm: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Encargo enviado:', formData);
+
         alert('¡Encargo recibido! Nos pondremos en contacto contigo pronto.');
         // Reset form or redirect
     };
@@ -63,6 +63,36 @@ export const EncargoForm: React.FC = () => {
 
             <div>
                 <label className="mb-2 block text-sm font-medium text-[var(--color-text)]">
+                    Certificado Energético (Opcional)
+                </label>
+                <div className="space-y-2">
+                    <Input
+                        name="energyCertificate"
+                        placeholder="Ej: A, B, En proceso..."
+                        value={(formData as any).energyCertificate || ''}
+                        onChange={handleChange}
+                    />
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, energyCertificate: 'En proceso' } as any))}
+                            className="text-xs px-2 py-1 rounded bg-[var(--color-background)] border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+                        >
+                            En proceso
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, energyCertificate: 'No tiene actualmente' } as any))}
+                            className="text-xs px-2 py-1 rounded bg-[var(--color-background)] border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+                        >
+                            No tiene actualmente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--color-text)]">
                     Descripción detallada
                 </label>
                 <textarea
@@ -89,6 +119,6 @@ export const EncargoForm: React.FC = () => {
             <Button type="submit" className="w-full">
                 Enviar Encargo
             </Button>
-        </form>
+        </form >
     );
 };

@@ -7,10 +7,10 @@ export const properties: Property[] = [
   {
     "id": "1",
     "title": "Casa de piedra con jardín",
-    "description": "Hermosa casa de piedra rústica completamente restaurada con jardín privado y vistas a la sierra. Ideal para desconectar y disfrutar de la naturaleza.",
+    "description": "Hermosa casa de piedra singular completamente restaurada con jardín privado y vistas a la sierra. Ideal para desconectar y disfrutar de la naturaleza.",
     "price": 385000,
     "zone": "Segovia",
-    "type": "Casa Rústica",
+    "type": "Casa de Pueblo",
     "area": 240,
     "bedrooms": 4,
     "bathrooms": 3,
@@ -41,7 +41,7 @@ export const properties: Property[] = [
   {
     "id": "3",
     "title": "Cortijo con finca",
-    "description": "Cortijo rústico con amplia finca, perfecto para amantes de la naturaleza y tranquilidad. Posibilidad de explotación agrícola.",
+    "description": "Cortijo singular con amplia finca, perfecto para amantes de la naturaleza y tranquilidad. Posibilidad de explotación agrícola.",
     "price": 2500,
     "zone": "El Espinar",
     "type": "Cortijo",

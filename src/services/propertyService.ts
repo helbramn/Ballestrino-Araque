@@ -21,10 +21,16 @@ export const getProperties = async (): Promise<Property[]> => {
     const propertiesRef = collection(db, PROPERTIES_COLLECTION);
     const snapshot = await getDocs(propertiesRef);
 
-    return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    })) as Property[];
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            // Safely convert timestamps if they exist
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+        } as unknown as Property;
+    });
 };
 
 // Get highlighted properties only
@@ -82,15 +88,21 @@ export const deleteProperty = async (id: string): Promise<void> => {
     const property = await getPropertyById(id);
     if (property && property.images) {
         // Delete images from storage
-        const deletePromises = property.images.map(async (imageUrl) => {
-            try {
-                const imageRef = ref(storage, imageUrl);
-                await deleteObject(imageRef);
-            } catch (error) {
-                console.error('Error deleting image:', error);
-            }
-        });
-        await Promise.all(deletePromises);
+        // Delete images from storage (best effort)
+        try {
+            const deletePromises = property.images.filter(url => url.startsWith('http')).map(async (imageUrl) => {
+                try {
+                    const imageRef = ref(storage, imageUrl);
+                    await deleteObject(imageRef);
+                } catch (error) {
+                    console.error('Error deleting image:', imageUrl, error);
+                }
+            });
+            await Promise.all(deletePromises);
+        } catch (imgError) {
+            console.error('Error processing image deletions:', imgError);
+            // Continue to delete document even if images fail
+        }
     }
 
     // Delete document

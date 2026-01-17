@@ -9,6 +9,7 @@ export interface Property {
     image: string;
     description: string;
     features: string[];
+    energyCertificate: string;
 }
 
 export interface Feature {

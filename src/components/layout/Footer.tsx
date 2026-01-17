@@ -8,17 +8,21 @@ export const Footer: React.FC = () => {
                 <div className="grid gap-8 md:grid-cols-3">
                     {/* Brand */}
                     <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)] font-serif text-lg font-bold">
-                                CI
+                        <Link to="/">
+                            <div className="flex items-center gap-3 mb-4">
+                                <img
+                                    src="/images/ballestrino-logo.png"
+                                    alt="Ballestrino-Araque Logo"
+                                    className="h-16 w-16 object-contain rounded-full bg-white/10"
+                                />
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">Ballestrino-Araque</h3>
+                                    <p className="text-sm text-gray-400">Inmobiliaria</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-bold">Carlota Inmob</h3>
-                                <p className="text-sm text-gray-400">Inmobiliaria Rústica</p>
-                            </div>
-                        </div>
+                        </Link>
                         <p className="text-sm text-gray-400">
-                            Especialistas en propiedades rústicas en la sierra de Segovia. Tu hogar en el campo te espera.
+                            Especialistas en propiedades singulares. Tu hogar ideal te espera.
                         </p>
                     </div>
 
@@ -45,16 +49,30 @@ export const Footer: React.FC = () => {
                     <div>
                         <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider">Contacto</h4>
                         <div className="flex flex-col gap-2 text-sm text-gray-400">
-                            <p>info@carlotainmob.com</p>
-                            <p>+34 921 000 000</p>
+                            <a
+                                href="https://mail.google.com/mail/?view=cm&fs=1&to=araquecarlota77@gmail.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-white transition-colors"
+                            >
+                                araquecarlota77@gmail.com
+                            </a>
+                            <a href="tel:+34722713530" className="hover:text-white transition-colors">
+                                +34 722 71 35 30
+                            </a>
+                            <p className="text-xs text-gray-400">
+                                Solo llamadas tardes (18:00 - 20:00)
+                            </p>
+                            <p className="text-xs text-[var(--color-primary)]">
+                                * Preferible contacto por email
+                            </p>
                             <p>Segovia, España</p>
-                            <p className="mt-2 text-xs">Lunes a Viernes: 9:00 - 18:00</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-8 border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
-                    <p>&copy; {new Date().getFullYear()} Carlota Inmob. Todos los derechos reservados.</p>
+                    <p>&copy; {new Date().getFullYear()} Ballestrino-Araque. Todos los derechos reservados.</p>
                 </div>
             </div>
         </footer>

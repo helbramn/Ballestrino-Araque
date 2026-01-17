@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
+import { Mail } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -42,10 +43,10 @@ export const LoginPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--color-background)] to-white px-4">
             <Card className="w-full max-w-md p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-serif font-bold mb-2 text-[var(--color-primary)]">
-                        Panel de Administración
+                    <h1 className="text-2xl font-serif font-bold mb-2">
+                        Acceso Administrativo
                     </h1>
-                    <p className="text-[var(--color-text-light)]">Carlota Inmob</p>
+                    <p className="text-[var(--color-text-light)]">Ballestrino-Araque</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -56,19 +57,21 @@ export const LoginPage: React.FC = () => {
                     )}
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium mb-2">
+                        <label className="block text-sm font-medium mb-2">
                             Email
                         </label>
-                        <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@carlotainmob.com"
-                            required
-                            disabled={loading}
-                            className="w-full"
-                        />
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                placeholder="admin@ballestrino.com"
+                                required
+                                disabled={loading}
+                            />
+                        </div>
                     </div>
 
                     <div>

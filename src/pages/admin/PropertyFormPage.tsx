@@ -15,6 +15,8 @@ export const PropertyFormPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [mainImageFile, setMainImageFile] = useState<File | null>(null);
+    const [mainImagePreview, setMainImagePreview] = useState<string>('');
 
     const [formData, setFormData] = useState<PropertyFormData>({
         title: '',
@@ -26,9 +28,12 @@ export const PropertyFormPage: React.FC = () => {
         bathrooms: 0,
         type: 'Casa',
         operation: 'venta',
+        energyCertificate: 'En proceso',
         highlighted: false,
         mainImage: '',
-        images: []
+        images: [],
+        features: [],
+        location: { lat: 0, lng: 0 }
     });
 
     useEffect(() => {
@@ -44,11 +49,24 @@ export const PropertyFormPage: React.FC = () => {
                 const { id: _, ...propertyData } = property;
                 setFormData(propertyData);
                 setImagePreviews(property.images || []);
+                setMainImagePreview(property.mainImage || '');
             }
         } catch (error) {
             console.error('Error loading property:', error);
             alert('Error al cargar la propiedad');
         }
+    };
+
+    const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setMainImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setMainImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,35 +100,88 @@ export const PropertyFormPage: React.FC = () => {
         setLoading(true);
 
         try {
-            let imageUrls = formData.images || [];
+            const tempId = id || `temp_${Date.now()}`;
 
-            // Upload new images if any
-            if (imageFiles.length > 0) {
-                const tempId = id || `temp_${Date.now()}`;
-                const uploadedUrls = await uploadPropertyImages(imageFiles, tempId);
-                imageUrls = [...imageUrls, ...uploadedUrls];
+            // 1. Handle Main Image
+            let mainImageUrl = '';
+
+            // If the preview is an HTTPS URL, reuse it (it was pasted or already existed)
+            if (mainImagePreview && mainImagePreview.startsWith('http')) {
+                mainImageUrl = mainImagePreview;
             }
+
+            // Only upload if we have a NEW file (and it generates a data URL preview, meaning it's not a remote URL)
+            // But mainImageFile is the source of truth for "new file to upload"
+            if (mainImageFile) {
+
+                try {
+                    const [uploadedUrl] = await timeoutPromise(15000, uploadPropertyImages([mainImageFile], tempId)) as string[];
+                    mainImageUrl = uploadedUrl;
+
+                } catch (uploadError) {
+                    console.error("Failed to upload main image", uploadError);
+                    const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
+                    // If upload fails, checks if we had a backup URL? No, just fail.
+                    // But if user provided a file, they expect upload.
+                    alert(`Error CRÍTICO al subir portada: ${msg}. Intenta usar una URL externa.`);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // 2. Handle Gallery Images
+            // Collect existing URLs from previews (that are not data URLs)
+            const existingUrls = imagePreviews.filter(url => url.startsWith('http'));
+
+            let uploadedGalleryUrls: string[] = [];
+
+            if (imageFiles.length > 0) {
+                console.log("Starting gallery images upload...");
+                try {
+                    uploadedGalleryUrls = await timeoutPromise(15000, uploadPropertyImages(imageFiles, tempId)) as string[];
+
+                } catch (uploadError) {
+                    console.error("Failed to upload gallery images", uploadError);
+                    const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
+                    alert(`Error CRÍTICO al subir galería: ${msg}. Intenta usar URLs externas.`);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Combine existing (or pasted) URLs with newly uploaded ones
+            // We use Set to allow uniqueness if needed, but array is fine.
+            // Note: We need to respect the order if possible, but separating them is easier.
+            // If precise order matters (mixed urls and files), we'd need a more complex mapping map,
+            // but for now appending is acceptable.
+            const finalImageUrls = [...existingUrls, ...uploadedGalleryUrls];
 
             const propertyData: PropertyFormData = {
                 ...formData,
-                mainImage: imageUrls[0] || formData.mainImage || '',
-                images: imageUrls
+                mainImage: mainImageUrl,
+                images: finalImageUrls
             };
+
+
 
             if (id) {
                 await updateProperty(id, propertyData);
+
                 alert('Propiedad actualizada correctamente');
             } else {
-                const newId = await createProperty(propertyData);
+                await createProperty(propertyData);
+
                 alert('Propiedad creada correctamente');
             }
 
             navigate('/admin');
-        } catch (error) {
-            console.error('Error saving property:', error);
-            alert('Error al guardar la propiedad. Inténtalo de nuevo.');
+        } catch (error: any) {
+            console.error('Error saving property FULL:', error);
+            // Show the actual error message if available
+            const errorMessage = error.message || error.toString();
+            alert(`Error al guardar: ${errorMessage}`);
         } finally {
-            setLoading(false);
+            setLoading(false); // Ensure this is always called
         }
     };
 
@@ -207,6 +278,35 @@ export const PropertyFormPage: React.FC = () => {
                             </div>
 
                             <div>
+                                <label className="block text-sm font-medium mb-2">Certificado Energético *</label>
+                                <div className="space-y-2">
+                                    <Input
+                                        value={formData.energyCertificate || ''}
+                                        onChange={(e) => setFormData({ ...formData, energyCertificate: e.target.value })}
+                                        placeholder="Ej: A, B, En proceso..."
+                                        required
+                                        className="w-full"
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, energyCertificate: 'En proceso' })}
+                                            className="text-xs px-2 py-1 rounded bg-[var(--color-background)] border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+                                        >
+                                            En proceso
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, energyCertificate: 'No tiene actualmente' })}
+                                            className="text-xs px-2 py-1 rounded bg-[var(--color-background)] border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+                                        >
+                                            No tiene actualmente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
                                 <label className="block text-sm font-medium mb-2">Zona *</label>
                                 <Input
                                     value={formData.zone}
@@ -223,7 +323,7 @@ export const PropertyFormPage: React.FC = () => {
                                 </label>
                                 <Input
                                     type="number"
-                                    value={formData.price}
+                                    value={formData.price === 0 ? '' : formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                                     min="0"
                                     placeholder="250000"
@@ -241,7 +341,7 @@ export const PropertyFormPage: React.FC = () => {
                                 </label>
                                 <Input
                                     type="number"
-                                    value={formData.area}
+                                    value={formData.area === 0 ? '' : formData.area}
                                     onChange={(e) => setFormData({ ...formData, area: Number(e.target.value) })}
                                     min="0"
                                     placeholder="150"
@@ -256,7 +356,7 @@ export const PropertyFormPage: React.FC = () => {
                                 </label>
                                 <Input
                                     type="number"
-                                    value={formData.bedrooms}
+                                    value={formData.bedrooms === 0 ? '' : formData.bedrooms}
                                     onChange={(e) => setFormData({ ...formData, bedrooms: Number(e.target.value) })}
                                     min="0"
                                     placeholder="3"
@@ -269,7 +369,7 @@ export const PropertyFormPage: React.FC = () => {
                                 <label className="block text-sm font-medium mb-2">Baños *</label>
                                 <Input
                                     type="number"
-                                    value={formData.bathrooms}
+                                    value={formData.bathrooms === 0 ? '' : formData.bathrooms}
                                     onChange={(e) => setFormData({ ...formData, bathrooms: Number(e.target.value) })}
                                     min="0"
                                     placeholder="2"
@@ -286,7 +386,107 @@ export const PropertyFormPage: React.FC = () => {
                             Imágenes de la Propiedad
                         </h2>
 
+                        {/* Imagen Principal */}
+                        <div className="mb-8">
+                            <label className="block text-sm font-medium mb-3">Imagen Principal (Portada)</label>
+
+                            {/* URL Input option */}
+                            <div className="mb-4 flex gap-2">
+                                <Input
+                                    placeholder="🔗 O pega aquí el enlace (URL) de la imagen..."
+                                    onChange={(e) => {
+                                        const url = e.target.value;
+                                        if (url) {
+                                            setMainImagePreview(url);
+                                            setFormData(prev => ({ ...prev, mainImage: url }));
+                                            setMainImageFile(null); // Clear file if URL is used
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="flex items-start gap-6">
+                                {mainImagePreview ? (
+                                    <div className="relative group w-64 h-40">
+                                        <img
+                                            src={mainImagePreview}
+                                            alt="Main preview"
+                                            className="w-full h-full object-cover rounded-lg border-2 border-[var(--color-primary)] bg-gray-100"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image';
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setMainImageFile(null);
+                                                setMainImagePreview('');
+                                                setFormData(prev => ({ ...prev, mainImage: '' }));
+                                            }}
+                                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <span className="absolute bottom-2 left-2 bg-[var(--color-primary)] text-white text-xs px-2 py-1 rounded">
+                                            Portada
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="w-64 h-40 border-2 border-dashed border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
+                                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                        <span className="text-sm text-gray-500">Subir Portada</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleMainImageChange}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="space-y-4">
+                            <label className="block text-sm font-medium">Galería de Imágenes</label>
+
+                            {/* URL Input for Gallery */}
+                            <div className="flex gap-2 mb-4">
+                                <Input
+                                    id="gallery-url-input"
+                                    placeholder="🔗 Pega enlace para galería y pulsa enter..."
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const input = e.currentTarget as HTMLInputElement;
+                                            const url = input.value;
+                                            if (url) {
+                                                setImagePreviews(prev => [...prev, url]);
+                                                // We don't verify if it's a file or string here, just add to previews. 
+                                                // In handleSubmit, we'll combine existing strings with new file uploads.
+                                                // Wait, formData.images normally holds the final URLs. 
+                                                // So we should add it to a tracking state or simple append to formData.images if we were syncing real-time,
+                                                // but handleSubmit rebuilds it. 
+                                                // Let's ensure handleSubmit respects previews that are already strings (URLs) and not files.
+                                                input.value = '';
+                                            }
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        const input = document.getElementById('gallery-url-input') as HTMLInputElement;
+                                        if (input && input.value) {
+                                            setImagePreviews(prev => [...prev, input.value]);
+                                            input.value = '';
+                                        }
+                                    }}
+                                >
+                                    Añadir
+                                </Button>
+                            </div>
+
                             {imagePreviews.length > 0 && (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {imagePreviews.map((preview, index) => (
@@ -294,7 +494,10 @@ export const PropertyFormPage: React.FC = () => {
                                             <img
                                                 src={preview}
                                                 alt={`Preview ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg border-2 border-[var(--color-border)]"
+                                                className="w-full h-32 object-cover rounded-lg border-2 border-[var(--color-border)] bg-gray-100"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image';
+                                                }}
                                             />
                                             <button
                                                 type="button"
@@ -303,11 +506,6 @@ export const PropertyFormPage: React.FC = () => {
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>
-                                            {index === 0 && (
-                                                <span className="absolute bottom-2 left-2 bg-[var(--color-primary)] text-white text-xs px-2 py-1 rounded">
-                                                    Principal
-                                                </span>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -334,6 +532,52 @@ export const PropertyFormPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Ubicación (Mapa) */}
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4 text-[var(--color-primary)]">
+                            Ubicación en el Mapa
+                        </h2>
+                        <div className="bg-blue-50 p-4 rounded-lg mb-4 text-sm text-blue-800">
+                            ℹ️ Para obtener las coordenadas: Ve a Google Maps, haz clic derecho en la ubicación exacta y copia los números (ej: 41.2345, -3.5678).
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Latitud</label>
+                                <Input
+                                    type="number"
+                                    step="any"
+                                    value={formData.location?.lat || ''}
+                                    onChange={(e) => setFormData({
+                                        ...formData,
+                                        location: {
+                                            ...formData.location,
+                                            lat: parseFloat(e.target.value) || 0,
+                                            lng: formData.location?.lng || 0
+                                        }
+                                    })}
+                                    placeholder="Ej: 40.4168"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Longitud</label>
+                                <Input
+                                    type="number"
+                                    step="any"
+                                    value={formData.location?.lng || ''}
+                                    onChange={(e) => setFormData({
+                                        ...formData,
+                                        location: {
+                                            ...formData.location,
+                                            lat: formData.location?.lat || 0,
+                                            lng: parseFloat(e.target.value) || 0
+                                        }
+                                    })}
+                                    placeholder="Ej: -3.7038"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Opciones */}
                     <div>
                         <h2 className="text-xl font-semibold mb-4 text-[var(--color-primary)]">
@@ -355,11 +599,31 @@ export const PropertyFormPage: React.FC = () => {
                         </label>
                     </div>
 
+                    {/* Opción VIP */}
+                    <div className="mt-4">
+                        <label className="flex items-center gap-3 cursor-pointer p-4 border border-[var(--color-border)] rounded-lg hover:bg-[#D4AF37]/5 transition-colors border-l-4 border-l-transparent hover:border-l-[#D4AF37]">
+                            <input
+                                type="checkbox"
+                                checked={(formData as any).isVIP || false}
+                                onChange={(e) => setFormData(prev => ({ ...prev, isVIP: e.target.checked } as any))}
+                                className="w-5 h-5 text-[#D4AF37] border-[var(--color-border)] rounded focus:ring-[#D4AF37]"
+                            />
+                            <div>
+                                <span className="font-medium flex items-center gap-2">
+                                    Colección Premium / VIP 💎
+                                </span>
+                                <p className="text-sm text-[var(--color-text-light)]">
+                                    La propiedad tendrá un distintivo especial dorado de lujo
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
                     {/* Botones */}
                     <div className="flex gap-4 pt-6 border-t border-[var(--color-border)]">
                         <Button
                             type="submit"
-                            disabled={loading || imagePreviews.length === 0}
+                            disabled={loading}
                             className="flex items-center gap-2"
                         >
                             <Save className="w-5 h-5" />
@@ -373,12 +637,31 @@ export const PropertyFormPage: React.FC = () => {
                     </div>
 
                     {imagePreviews.length === 0 && (
-                        <p className="text-sm text-amber-600">
-                            ⚠️ Debes añadir al menos una imagen para guardar la propiedad
+                        <p className="text-sm text-gray-500 mt-4">
+                            ℹ️ Modo diagnóstico: Se permite guardar sin imágenes para probar la conexión.
                         </p>
                     )}
                 </Card>
             </form>
-        </div>
+        </div >
     );
+};
+
+// Helper to timeout the upload promise
+const timeoutPromise = (ms: number, promise: Promise<any>) => {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error(`Timeout de carga (${ms}ms) - Posible problema de conexión o permisos con Firebase Storage`));
+        }, ms);
+
+        promise
+            .then((value) => {
+                clearTimeout(timer);
+                resolve(value);
+            })
+            .catch((reason) => {
+                clearTimeout(timer);
+                reject(reason);
+            });
+    });
 };

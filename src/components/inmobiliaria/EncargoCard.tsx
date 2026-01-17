@@ -8,6 +8,14 @@ interface EncargoCardProps {
 }
 
 export const EncargoCard: React.FC<EncargoCardProps> = ({ encargo }) => {
+    const formatDate = (date: any) => {
+        if (!date) return 'Fecha desconocida';
+        if (date.seconds) {
+            return new Date(date.seconds * 1000).toLocaleDateString();
+        }
+        return new Date(date).toLocaleDateString();
+    };
+
     return (
         <Card className="h-full border-l-4 border-l-[var(--color-primary)]">
             <div className="flex justify-between items-start mb-2">
@@ -15,11 +23,13 @@ export const EncargoCard: React.FC<EncargoCardProps> = ({ encargo }) => {
                     {encargo.operation}
                 </Badge>
                 <span className="text-xs text-[var(--color-text-light)]">
-                    {new Date(encargo.createdAt).toLocaleDateString()}
+                    {formatDate(encargo.createdAt)}
                 </span>
             </div>
 
-            <h3 className="text-lg font-bold mb-1">Presupuesto: {encargo.budget.toLocaleString()} €</h3>
+            <h3 className="text-lg font-bold mb-1">
+                {encargo.priceMax ? `Hasta ${encargo.priceMax.toLocaleString()} €` : 'Presupuesto a consultar'}
+            </h3>
             <p className="text-sm text-[var(--color-text-light)] mb-3">📍 Zona: {encargo.zone}</p>
 
             <p className="text-sm text-[var(--color-text)] italic">

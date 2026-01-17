@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../ui/Card';
-import { TrendingUp, Users, Home } from 'lucide-react';
+import { TrendingUp, Users, Home, ArrowRight } from 'lucide-react';
 
 interface AdvisoryCard {
     id: number;
@@ -8,6 +9,7 @@ interface AdvisoryCard {
     description: string;
     icon: React.ReactNode;
     color: string;
+    link?: string;
 }
 
 const cards: AdvisoryCard[] = [
@@ -16,7 +18,8 @@ const cards: AdvisoryCard[] = [
         title: "Inversión Rural",
         description: "Oportunidades únicas de alta rentabilidad en la sierra de Segovia.",
         icon: <TrendingUp className="w-6 h-6 text-white" />,
-        color: "bg-[#556B2F]" // Dark Olive Green
+        color: "bg-[#556B2F]", // Dark Olive Green
+        link: "/inversores"
     },
     {
         id: 2,
@@ -37,8 +40,12 @@ const cards: AdvisoryCard[] = [
 export const AdvisoryCardStack: React.FC = () => {
     const [cardsState, setCardsState] = useState(cards);
     const [isAnimating, setIsAnimating] = useState(false);
+    const navigate = useNavigate();
 
-    const moveCardToBack = () => {
+    const moveCardToBack = (e: React.MouseEvent) => {
+        // Prevent card rotation if clicking a button/link
+        if ((e.target as HTMLElement).closest('button')) return;
+
         if (isAnimating) return;
         // Start animation
         setIsAnimating(true);
@@ -58,7 +65,16 @@ export const AdvisoryCardStack: React.FC = () => {
     // Auto-rotation every 5 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-            moveCardToBack();
+            // Only rotate if not hovering (optional, but good UX) - for now just rotate
+            // We can't easily access the click handler here without refactoring, 
+            // so we'll just replicate the state update logic or call a ref.
+            // For simplicity, let's just update state directly as before.
+            setCardsState((prev) => {
+                const newCards = [...prev];
+                const first = newCards.shift();
+                if (first) newCards.push(first);
+                return newCards;
+            });
         }, 5000);
         return () => clearInterval(interval);
     }, []);
@@ -74,18 +90,12 @@ export const AdvisoryCardStack: React.FC = () => {
                 let zIndex = 0;
                 let opacity = 1;
 
-                // Logic for "Send to Back" animation
-                // When animating, the top card (index 0) moves down and fades out to simulate going to back
-                // The others move up to take its place
-
                 if (isTop) {
                     if (isAnimating) {
-                        // Animation state: Top card moves down and shrinks to go behind
                         transform = 'rotate(0deg) translateY(40px) translateX(0) scale(0.9)';
-                        zIndex = 0; // Drop z-index during animation so it appears to go behind
+                        zIndex = 0;
                         opacity = 0.5;
                     } else {
-                        // Static state: Top card is front and center
                         transform = 'rotate(0deg) translateY(0) translateX(0) scale(1)';
                         zIndex = 30;
                         opacity = 1;
@@ -112,17 +122,28 @@ export const AdvisoryCardStack: React.FC = () => {
                         }}
                     >
                         <Card className={`h-full flex flex-col justify-center p-5 border-none shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white ${card.color} rounded-3xl`}>
-                            <div className="flex items-center gap-4">
-                                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shrink-0 shadow-inner">
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="bg-white/20 p-3 rounded-2xl shrink-0 shadow-inner">
                                     {card.icon}
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-serif mb-1 font-bold tracking-tight text-white">{card.title}</h3>
-                                    <p className="text-white/90 leading-snug text-xs font-medium opacity-90">
-                                        {card.description}
-                                    </p>
                                 </div>
                             </div>
+                            <p className="text-white/90 leading-snug text-xs font-medium opacity-90 mb-3">
+                                {card.description}
+                            </p>
+                            {card.link && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(card.link!);
+                                    }}
+                                    className="self-start mt-auto flex items-center gap-1 text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors"
+                                >
+                                    Ver más <ArrowRight className="w-3 h-3" />
+                                </button>
+                            )}
                         </Card>
                     </div>
                 );
