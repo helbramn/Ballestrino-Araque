@@ -31,7 +31,7 @@ export const Navbar: React.FC = () => {
                         className="cursor-pointer transition-transform hover:scale-110"
                     >
                         <img
-                            src="/images/ballestrino-logo.png"
+                            src={`${import.meta.env.BASE_URL}images/ballestrino-logo.png`}
                             alt="Ballestrino-Araque Logo"
                             className="w-16 h-16 object-contain rounded-full shadow-lg bg-white/10 backdrop-blur-sm p-1"
                         />
@@ -114,7 +114,7 @@ export const Navbar: React.FC = () => {
 
             {/* Logo Lightbox */}
             <ImageLightbox
-                images={['/images/ballestrino-logo.png']}
+                images={[`${import.meta.env.BASE_URL}images/ballestrino-logo.png`]}
                 isOpen={isLightboxOpen}
                 currentIndex={0}
                 onClose={() => setIsLightboxOpen(false)}

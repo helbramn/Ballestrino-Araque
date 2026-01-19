@@ -16,9 +16,9 @@ export const properties: Property[] = [
     "bathrooms": 3,
     "operation": "venta",
     "highlighted": true,
-    "mainImage": "/assets/property1.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property1.jpg`,
     "images": [
-      "/assets/property1.jpg"
+      `${import.meta.env.BASE_URL}assets/property1.jpg`
     ]
   },
   {
@@ -33,9 +33,9 @@ export const properties: Property[] = [
     "bathrooms": 4,
     "operation": "venta",
     "highlighted": true,
-    "mainImage": "/assets/property2.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property2.jpg`,
     "images": [
-      "/assets/property2.jpg"
+      `${import.meta.env.BASE_URL}assets/property2.jpg`
     ]
   },
   {
@@ -50,9 +50,9 @@ export const properties: Property[] = [
     "bathrooms": 5,
     "operation": "alquiler",
     "highlighted": true,
-    "mainImage": "/assets/property3.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property3.jpg`,
     "images": [
-      "/assets/property3.jpg"
+      `${import.meta.env.BASE_URL}assets/property3.jpg`
     ]
   },
   {
@@ -67,9 +67,9 @@ export const properties: Property[] = [
     "bathrooms": 2,
     "operation": "opcion_compra",
     "highlighted": true,
-    "mainImage": "/assets/property4.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property4.jpg`,
     "images": [
-      "/assets/property4.jpg"
+      `${import.meta.env.BASE_URL}assets/property4.jpg`
     ]
   },
   {
@@ -84,9 +84,9 @@ export const properties: Property[] = [
     "bathrooms": 2,
     "operation": "opcion_compra",
     "highlighted": true,
-    "mainImage": "/assets/property5.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property5.jpg`,
     "images": [
-      "/assets/property5.jpg"
+      `${import.meta.env.BASE_URL}assets/property5.jpg`
     ]
   },
   {
@@ -101,9 +101,9 @@ export const properties: Property[] = [
     "bathrooms": 2,
     "operation": "opcion_compra",
     "highlighted": true,
-    "mainImage": "/assets/property6.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property6.jpg`,
     "images": [
-      "/assets/property6.jpg"
+      `${import.meta.env.BASE_URL}assets/property6.jpg`
     ]
   },
   {
@@ -118,9 +118,9 @@ export const properties: Property[] = [
     "bathrooms": 1,
     "operation": "venta",
     "highlighted": false,
-    "mainImage": "/assets/property7.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property7.jpg`,
     "images": [
-      "/assets/property7.jpg"
+      `${import.meta.env.BASE_URL}assets/property7.jpg`
     ]
   },
   {
@@ -135,9 +135,9 @@ export const properties: Property[] = [
     "bathrooms": 3,
     "operation": "venta",
     "highlighted": false,
-    "mainImage": "/assets/property8.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property8.jpg`,
     "images": [
-      "/assets/property8.jpg"
+      `${import.meta.env.BASE_URL}assets/property8.jpg`
     ]
   },
   {
@@ -152,9 +152,9 @@ export const properties: Property[] = [
     "bathrooms": 2,
     "operation": "venta",
     "highlighted": false,
-    "mainImage": "/assets/property9.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property9.jpg`,
     "images": [
-      "/assets/property9.jpg"
+      `${import.meta.env.BASE_URL}assets/property9.jpg`
     ]
   },
   {
@@ -169,9 +169,9 @@ export const properties: Property[] = [
     "bathrooms": 1,
     "operation": "alquiler",
     "highlighted": false,
-    "mainImage": "/assets/property10.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property10.jpg`,
     "images": [
-      "/assets/property10.jpg"
+      `${import.meta.env.BASE_URL}assets/property10.jpg`
     ]
   },
   {
@@ -186,9 +186,9 @@ export const properties: Property[] = [
     "bathrooms": 4,
     "operation": "venta",
     "highlighted": false,
-    "mainImage": "/assets/property11.jpg",
+    "mainImage": `${import.meta.env.BASE_URL}assets/property11.jpg`,
     "images": [
-      "/assets/property11.jpg"
+      `${import.meta.env.BASE_URL}assets/property11.jpg`
     ]
   }
 ];

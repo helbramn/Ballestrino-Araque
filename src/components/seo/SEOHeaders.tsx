@@ -13,13 +13,16 @@ interface SEOHeadersProps {
 export const SEOHeaders: React.FC<SEOHeadersProps> = ({
     title = 'Ballestrino-Araque | Inmobiliaria Singular en Segovia',
     description = 'Inmobiliaria de confianza. No espere para comprar, compre y espere. Especialistas en propiedades singulares y exclusivas en la sierra de Segovia.',
-    image = '/images/ballestrino-logo.png',
+    image = `${import.meta.env.BASE_URL}images/ballestrino-logo.png`,
     url = window.location.href,
     type = 'website',
     structuredData
 }) => {
     const siteTitle = 'Ballestrino-Araque';
     const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
+    // Correctly construct full URL for social sharing
+    // window.location.origin already includes protocol + domain
+    // image typically starts with /Ballestrino-Araque/ due to BASE_URL
     const fullImageUrl = image.startsWith('http') ? image : `${window.location.origin}${image}`;
 
     return (

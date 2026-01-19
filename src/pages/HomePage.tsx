@@ -19,7 +19,7 @@ export const HomePage: React.FC = () => {
         "@context": "https://schema.org",
         "@type": "RealEstateAgent",
         "name": "Ballestrino-Araque",
-        "image": "https://ballestrino-araque.com/images/ballestrino-logo.png",
+        "image": `https://ballestrino-araque.com${import.meta.env.BASE_URL}images/ballestrino-logo.png`,
         "description": "Inmobiliaria de confianza especialistas en propiedades singulares en la Sierra de Segovia.",
         "address": {
             "@type": "PostalAddress",
@@ -82,7 +82,7 @@ export const HomePage: React.FC = () => {
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="/images/sierra-view.png"
+                        src={`${import.meta.env.BASE_URL}images/sierra-view.png`}
                         alt="Sierra de El Espinar"
                         className="w-full h-full object-cover"
                     />
@@ -225,7 +225,7 @@ export const HomePage: React.FC = () => {
                     {/* Background */}
                     <div className="absolute inset-0">
                         <img
-                            src="/images/sierra-view.png"
+                            src={`${import.meta.env.BASE_URL}images/sierra-view.png`}
                             alt=""
                             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                         />
