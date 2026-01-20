@@ -22,11 +22,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
-                    <img
-                        src={`/properties/prop${(property.id.length % 4) + 1}.png`}
-                        alt={property.title}
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <div className="h-full w-full bg-[var(--color-bg-alt)] flex items-center justify-center border border-[var(--color-border)]">
+                        <span className="text-[var(--color-text-light)] text-sm flex flex-col items-center gap-2">
+                            📷 Sin fotos
+                        </span>
+                    </div>
                 )}
 
                 <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">

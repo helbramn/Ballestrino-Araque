@@ -70,19 +70,10 @@ export const PropertyDetailPage: React.FC = () => {
     };
 
     // Fallback image logic
-    const fallbackIndex = (property.id.length % 4) + 1;
-    const fallbackImage = `/properties/prop${fallbackIndex}.png`;
-    const displayImage = property.mainImage || fallbackImage;
+    const displayImage = property.mainImage || '';
 
-    // Fallback gallery images (use all 4 local images if property has no images)
-    const displayImages = property.images && property.images.length > 0
-        ? property.images
-        : [
-            '/properties/prop1.png',
-            '/properties/prop2.png',
-            '/properties/prop3.png',
-            '/properties/prop4.png'
-        ];
+    // Fallback gallery images
+    const displayImages = property.images || [];
 
     const schema = {
         "@context": "https://schema.org",
@@ -116,13 +107,21 @@ export const PropertyDetailPage: React.FC = () => {
 
             {/* Hero Image */}
             <div className="relative">
-                <div
-                    className="h-[60vh] bg-cover bg-center cursor-pointer"
-                    style={{ backgroundImage: `url(${displayImage})` }}
-                    onClick={() => openLightbox(0)}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                </div>
+                {displayImage ? (
+                    <div
+                        className="h-[60vh] bg-cover bg-center cursor-pointer"
+                        style={{ backgroundImage: `url(${displayImage})` }}
+                        onClick={() => openLightbox(0)}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                ) : (
+                    <div className="h-[40vh] bg-[var(--color-bg-alt)] flex items-center justify-center border-b border-[var(--color-border)]">
+                        <span className="text-[var(--color-text-light)] flex flex-col items-center gap-2">
+                            📷 Sin foto principal
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Property Content */}
