@@ -15,8 +15,8 @@ export const PropertyFormPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    const [mainImageFile, setMainImageFile] = useState<File | null>(null);
-    const [mainImagePreview, setMainImagePreview] = useState<string>('');
+    // New state for URL-based main image
+    const [mainImageInfo, setMainImageInfo] = useState<{ file: File | null, preview: string }>({ file: null, preview: '' });
 
     const [formData, setFormData] = useState<PropertyFormData>({
         title: '',
