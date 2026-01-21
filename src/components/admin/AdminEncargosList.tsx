@@ -1,13 +1,23 @@
 import { useEffect, useState } from 'react';
-import { getEncargos, deleteEncargo, updateEncargo, seedEncargos, deleteAllEncargos } from '../../services/encargoService';
+import { getEncargos, deleteEncargo, updateEncargo, seedEncargos, deleteAllEncargos, createEncargo } from '../../services/encargoService';
 import type { Encargo } from '../../types/encargo';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Trash2, Phone, Mail, MapPin, Calendar, Euro, Eye, EyeOff } from 'lucide-react';
+import { Input } from '../ui/Input';
+import { Trash2, Phone, Mail, MapPin, Calendar, Euro, Eye, EyeOff, Plus, Save, X } from 'lucide-react';
 
 export const AdminEncargosList = () => {
     const [encargos, setEncargos] = useState<Encargo[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showCreate, setShowCreate] = useState(false);
+    const [newEncargo, setNewEncargo] = useState<Partial<Encargo>>({
+        name: '',
+        phone: '',
+        email: '',
+        description: '',
+        operation: 'venta',
+        type: 'Casa'
+    });
 
     const loadEncargos = async () => {
         try {
@@ -25,6 +35,20 @@ export const AdminEncargosList = () => {
     useEffect(() => {
         loadEncargos();
     }, []);
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await createEncargo(newEncargo as any);
+            alert('Encargo creado correctamente');
+            setShowCreate(false);
+            setNewEncargo({ name: '', phone: '', email: '', description: '', operation: 'venta', type: 'Casa' });
+            loadEncargos();
+        } catch (error) {
+            console.error('Error creating encargo:', error);
+            alert('Error al crear el encargo');
+        }
+    };
 
     const handleTogglePublish = async (encargo: Encargo) => {
         if (!encargo.id) return;
@@ -68,28 +92,11 @@ export const AdminEncargosList = () => {
         }
     };
 
-    if (loading) {
+    if (loading && !encargos.length) { // Only showing loading on initial empty state
         return (
             <div className="flex items-center justify-center h-64">
                 <p className="text-[var(--color-text-light)] text-lg">Cargando encargos...</p>
             </div>
-        );
-    }
-
-    if (encargos.length === 0) {
-        return (
-            <Card className="p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">No hay encargos</h3>
-                <p className="text-[var(--color-text-light)] mb-6">
-                    Aún no has recibido ninguna solicitud de búsqueda.
-                </p>
-                <Button onClick={handleSeed} variant="secondary">
-                    Generar Datos de Prueba
-                </Button>
-            </Card>
         );
     }
 
@@ -110,12 +117,77 @@ export const AdminEncargosList = () => {
 
     return (
         <div className="grid gap-4">
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between mb-4">
+                <Button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2">
+                    {showCreate ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    {showCreate ? 'Cancelar' : 'Nuevo Encargo Manual'}
+                </Button>
+
                 <Button onClick={handleDeleteAll} variant="secondary" className="text-red-600 hover:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Borrar Todo
                 </Button>
             </div>
+
+            {showCreate && (
+                <Card className="p-6 mb-6 border-2 border-[var(--color-primary)]/20 shadow-lg animate-in slide-in-from-top-4">
+                    <h3 className="text-lg font-semibold mb-4 text-[var(--color-primary)]">Registrar Nuevo Encargo</h3>
+                    <form onSubmit={handleCreate} className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Nombre Cliente</label>
+                                <Input
+                                    value={newEncargo.name}
+                                    onChange={e => setNewEncargo({ ...newEncargo, name: e.target.value })}
+                                    placeholder="Ej: Juan Pérez"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Teléfono</label>
+                                <Input
+                                    value={newEncargo.phone}
+                                    onChange={e => setNewEncargo({ ...newEncargo, phone: e.target.value })}
+                                    placeholder="Ej: 600 123 456"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Descripción / Notas</label>
+                            <textarea
+                                className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)] focus:ring-2 focus:ring-[var(--color-primary)] outline-none resize-none"
+                                rows={3}
+                                value={newEncargo.description}
+                                onChange={e => setNewEncargo({ ...newEncargo, description: e.target.value })}
+                                placeholder="Ej: Busca casa grande con 7 habitaciones, presupuesto 2.5K..."
+                                required
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="secondary" onClick={() => setShowCreate(false)}>Cancelar</Button>
+                            <Button type="submit" className="flex items-center gap-2">
+                                <Save className="w-4 h-4" /> Guardar Encargo
+                            </Button>
+                        </div>
+                    </form>
+                </Card>
+            )}
+
+            {encargos.length === 0 && !showCreate && (
+                <Card className="p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Mail className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">No hay encargos</h3>
+                    <p className="text-[var(--color-text-light)] mb-6">
+                        Aún no has recibido ninguna solicitud de búsqueda.
+                    </p>
+                    <Button onClick={handleSeed} variant="secondary">
+                        Generar Datos de Prueba
+                    </Button>
+                </Card>
+            )}
             {encargos.map((encargo) => (
                 <Card key={encargo.id} className={`p-6 transition-colors ${encargo.published ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-gray-200'}`}>
                     <div className="flex flex-col md:flex-row justify-between items-start gap-6">

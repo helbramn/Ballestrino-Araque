@@ -115,15 +115,13 @@ export const PropertyFormPage: React.FC = () => {
             if (mainImageFile) {
 
                 try {
-                    const [uploadedUrl] = await timeoutPromise(15000, uploadPropertyImages([mainImageFile], tempId)) as string[];
+                    const [uploadedUrl] = await timeoutPromise(60000, uploadPropertyImages([mainImageFile], tempId)) as string[];
                     mainImageUrl = uploadedUrl;
 
                 } catch (uploadError) {
                     console.error("Failed to upload main image", uploadError);
                     const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
-                    // If upload fails, checks if we had a backup URL? No, just fail.
-                    // But if user provided a file, they expect upload.
-                    alert(`Error CRÍTICO al subir portada: ${msg}. Intenta usar una URL externa.`);
+                    alert(`Error al subir portada: ${msg}.\n\nPosibles causas:\n1. Internet lento\n2. Imagen muy pesada (>5MB)\n3. Bloqueador de anuncios`);
                     setLoading(false);
                     return;
                 }
@@ -138,12 +136,12 @@ export const PropertyFormPage: React.FC = () => {
             if (imageFiles.length > 0) {
                 console.log("Starting gallery images upload...");
                 try {
-                    uploadedGalleryUrls = await timeoutPromise(15000, uploadPropertyImages(imageFiles, tempId)) as string[];
+                    uploadedGalleryUrls = await timeoutPromise(60000, uploadPropertyImages(imageFiles, tempId)) as string[];
 
                 } catch (uploadError) {
                     console.error("Failed to upload gallery images", uploadError);
                     const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
-                    alert(`Error CRÍTICO al subir galería: ${msg}. Intenta usar URLs externas.`);
+                    alert(`Error al subir galería: ${msg}.\n\nPrueba a subir menos fotos de golpe.`);
                     setLoading(false);
                     return;
                 }

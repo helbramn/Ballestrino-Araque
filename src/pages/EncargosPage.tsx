@@ -189,7 +189,7 @@ export const EncargosPage: React.FC = () => {
 
                             <div className="grid md:grid-cols-2 gap-6 mb-6">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Tipo de Operación *</label>
+                                    <label className="block text-sm font-medium mb-2">Tipo de Operación <span className="text-gray-400 font-normal">(Opcional)</span></label>
                                     <select
                                         className="w-full rounded-lg border border-[var(--color-border)] px-4 py-3 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 bg-white"
                                         value={formData.operation}
@@ -201,13 +201,13 @@ export const EncargosPage: React.FC = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Tipo de Propiedad</label>
+                                    <label className="block text-sm font-medium mb-2">Tipo de Propiedad <span className="text-gray-400 font-normal">(Opcional)</span></label>
                                     <select
                                         className="w-full rounded-lg border border-[var(--color-border)] px-4 py-3 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 bg-white"
                                         value={formData.type}
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                     >
-                                        <option value="">Cualquiera</option>
+                                        <option value="">Cualquiera / No seguro</option>
                                         <option value="Casa">Casa / Chalet</option>
                                         <option value="Piso">Piso / Apartamento</option>
                                         <option value="Finca">Finca Singular</option>
