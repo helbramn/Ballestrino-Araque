@@ -84,9 +84,8 @@ export const PropertyFormPage: React.FC = () => {
             try {
                 const idMatch = url.match(/\/d\/([-a-zA-Z0-9_]+)/);
                 if (idMatch && idMatch[1]) {
-                    // Use thumbnail API which is often more reliable for previews
-                    // sz=w1000 requests a large image
-                    return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
+                    // CDN link format - typically highly reliable for embedding
+                    return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
                 }
             } catch (e) {
                 console.error("Error parsing URL", e);
