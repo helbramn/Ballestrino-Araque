@@ -100,65 +100,16 @@ export const PropertyFormPage: React.FC = () => {
         setLoading(true);
 
         try {
-            const tempId = id || `temp_${Date.now()}`;
+            console.log("Starting save process (URL mode only)...");
 
-            // 1. Handle Main Image
-            let mainImageUrl = '';
-
-            // If the preview is an HTTPS URL, reuse it (it was pasted or already existed)
-            if (mainImagePreview && mainImagePreview.startsWith('http')) {
-                mainImageUrl = mainImagePreview;
-            }
-
-            // Only upload if we have a NEW file (and it generates a data URL preview, meaning it's not a remote URL)
-            // But mainImageFile is the source of truth for "new file to upload"
-            if (mainImageFile) {
-
-                try {
-                    const [uploadedUrl] = await timeoutPromise(60000, uploadPropertyImages([mainImageFile], tempId)) as string[];
-                    mainImageUrl = uploadedUrl;
-
-                } catch (uploadError) {
-                    console.error("Failed to upload main image", uploadError);
-                    const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
-                    alert(`Error al subir portada: ${msg}.\n\nPosibles causas:\n1. Internet lento\n2. Imagen muy pesada (>5MB)\n3. Bloqueador de anuncios`);
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            // 2. Handle Gallery Images
-            // Collect existing URLs from previews (that are not data URLs)
-            const existingUrls = imagePreviews.filter(url => url.startsWith('http'));
-
-            let uploadedGalleryUrls: string[] = [];
-
-            if (imageFiles.length > 0) {
-                console.log("Starting gallery images upload...");
-                try {
-                    uploadedGalleryUrls = await timeoutPromise(60000, uploadPropertyImages(imageFiles, tempId)) as string[];
-
-                } catch (uploadError) {
-                    console.error("Failed to upload gallery images", uploadError);
-                    const msg = uploadError instanceof Error ? uploadError.message : "Error desconocido";
-                    alert(`Error al subir galería: ${msg}.\n\nPrueba a subir menos fotos de golpe.`);
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            // Combine existing (or pasted) URLs with newly uploaded ones
-            // We use Set to allow uniqueness if needed, but array is fine.
-            // Note: We need to respect the order if possible, but separating them is easier.
-            // If precise order matters (mixed urls and files), we'd need a more complex mapping map,
-            // but for now appending is acceptable.
-            const finalImageUrls = [...existingUrls, ...uploadedGalleryUrls];
-
-            const finalImageUrls = [...existingUrls, ...uploadedGalleryUrls];
-
-            // 3. Prepare and Sanitize Data
-            // Firestore dislikes undefined/NaN, so we safeguard everything
+            // 1. Sanitize Data
             const safeNumber = (num: any) => (isNaN(Number(num)) ? 0 : Number(num));
+
+            // 2. Transform Drive Links
+            const finalMainImage = transformDriveLink(mainImageInfo.preview || '');
+            const finalGalleryImages = (formData.images || [])
+                .filter(url => url.trim() !== '') // Remove empty strings
+                .map(transformDriveLink);
 
             const propertyData: PropertyFormData = {
                 ...formData,
@@ -168,37 +119,47 @@ export const PropertyFormPage: React.FC = () => {
                 bathrooms: safeNumber(formData.bathrooms),
                 location: {
                     lat: safeNumber(formData.location?.lat),
-                    lng: safeNumber(formData.location?.lng)
+                    lng: safeNumber(formData.location?.lng),
+                    address: formData.location?.address || ''
                 },
-                mainImage: mainImageUrl,
-                images: finalImageUrls
+                mainImage: finalMainImage,
+                images: finalGalleryImages
             };
 
             console.log("Saving payload:", propertyData);
 
-
-
             if (id) {
-                await updateProperty(id, propertyData);
-
+                await propertyService.updateProperty(id, propertyData);
+                console.log("Update successful");
                 alert('Propiedad actualizada correctamente');
             } else {
-                await createProperty(propertyData);
-
+                await propertyService.createProperty(propertyData);
+                console.log("Creation successful");
                 alert('Propiedad creada correctamente');
             }
 
             navigate('/admin');
         } catch (error: any) {
-            console.error('Error saving property FULL:', error);
-            // Show the actual error message if available
+            console.error('Error saving property:', error);
+            const errorMessage = error.message || error.toString();
+            alert(`Error al guardar: ${errorMessage}`);
         } finally {
-            console.log("Saving process finished (success or error).");
+            console.log("Process finished.");
             setLoading(false);
         }
     };
 
+    // Assuming AdminLayout and Select are available components
+    // If not, replace AdminLayout with a simple div and Select with a standard <select> element.
+    // For this response, I'll keep the user's provided JSX structure.
+    if (loading && !formData.title && !id) { // Added condition to prevent showing loading on initial edit load
+        return <div className="p-8 text-center text-[var(--color-primary)]">Cargando datos...</div>;
+    }
+
     return (
+        // Assuming AdminLayout is a component that wraps the content
+        // If not, replace with a simple div or adjust as per your project's structure.
+        // <AdminLayout title={id ? "Editar Propiedad" : "Nueva Propiedad"}>
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
                 <Link to="/admin">
@@ -260,6 +221,21 @@ export const PropertyFormPage: React.FC = () => {
                         <div className="grid md:grid-cols-3 gap-6">
                             <div>
                                 <label className="block text-sm font-medium mb-2">Tipo *</label>
+                                {/* Assuming Select component is available, otherwise use native <select> */}
+                                {/* <Select
+                                    label="Tipo"
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                                    options={[
+                                        { value: 'Casa', label: 'Casa' },
+                                        { value: 'Apartamento', label: 'Apartamento' },
+                                        { value: 'Casa Rural', label: 'Casa Rural' },
+                                        { value: 'Chalet', label: 'Chalet' },
+                                        { value: 'Terreno', label: 'Terreno' },
+                                        { value: 'Local Comercial', label: 'Local Comercial' },
+                                        { value: 'Finca', label: 'Finca' }
+                                    ]}
+                                /> */}
                                 <select
                                     className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                     value={formData.type}
@@ -278,6 +254,17 @@ export const PropertyFormPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">Operación *</label>
+                                {/* Assuming Select component is available, otherwise use native <select> */}
+                                {/* <Select
+                                    label="Operación"
+                                    value={formData.operation}
+                                    onChange={(e) => setFormData({ ...formData, operation: e.target.value as 'venta' | 'alquiler' | 'opcion_compra' })}
+                                    options={[
+                                        { value: 'venta', label: 'Venta' },
+                                        { value: 'alquiler', label: 'Alquiler' },
+                                        { value: 'opcion_compra', label: 'Alquiler con Opción a Compra' }
+                                    ]}
+                                /> */}
                                 <select
                                     className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                     value={formData.operation}
@@ -393,40 +380,25 @@ export const PropertyFormPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Imágenes */}
+                    {/* Imágenes (URL) */}
                     <div>
                         <h2 className="text-xl font-semibold mb-4 text-[var(--color-primary)]">
-                            Imágenes de la Propiedad
+                            Imágenes (Enlaces)
                         </h2>
 
-                        {/* Imagen Principal */}
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium mb-3">Imagen Principal (Portada)</label>
-
-                            {/* URL Input option */}
-                            <div className="mb-4 flex gap-2">
+                        {/* Imagen Principal URL */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Imagen Principal (URL)</label>
+                            <div className="flex gap-4 items-start">
                                 <Input
-                                    placeholder="🔗 O pega aquí el enlace (URL) de la imagen..."
-                                    onChange={(e) => {
-                                        const url = e.target.value;
-                                        if (url) {
-                                            setMainImagePreview(url);
-                                            setFormData(prev => ({ ...prev, mainImage: url }));
-                                            setMainImageFile(null); // Clear file if URL is used
-                                        }
-                                    }}
+                                    value={mainImageInfo.preview || ''}
+                                    onChange={handleMainImageChange}
+                                    placeholder="Pega aquí el enlace de Google Drive o de la imagen..."
+                                    className="flex-1"
                                 />
-                            </div>
-
-                            <div className="flex items-start gap-6">
-                                {mainImagePreview ? (
-                                    <div className="relative group w-64 h-40">
+                                {mainImageInfo.preview && (
+                                    <div className="w-24 h-24 relative rounded-lg overflow-hidden border bg-gray-200 shrink-0">
                                         <img
-                                            src={mainImagePreview}
-                                            alt="Main preview"
-                                            className="w-full h-full object-cover rounded-lg border-2 border-[var(--color-primary)] bg-gray-100"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image';
                                             }}
                                         />
                                         <button
@@ -445,16 +417,16 @@ export const PropertyFormPage: React.FC = () => {
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className="w-64 h-40 border-2 border-dashed border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
-                                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                        <span className="text-sm text-gray-500">Subir Portada</span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleMainImageChange}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                        />
-                                    </div>
+                                <div className="w-64 h-40 border-2 border-dashed border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
+                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                    <span className="text-sm text-gray-500">Subir Portada</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleMainImageChange}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
+                                </div>
                                 )}
                             </div>
                         </div>
