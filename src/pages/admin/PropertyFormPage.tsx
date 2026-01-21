@@ -64,7 +64,8 @@ export const PropertyFormPage: React.FC = () => {
             // Match /d/ID or id=ID
             const idMatch = url.match(/\/d\/([-a-zA-Z0-9_]+)/) || url.match(/id=([-a-zA-Z0-9_]+)/);
             if (idMatch && idMatch[1]) {
-                return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+                // Use the thumbnail API which is more robust for public files than direct lh3 links
+                return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
             }
         } catch (e) {
             console.error("Error parsing URL", e);
