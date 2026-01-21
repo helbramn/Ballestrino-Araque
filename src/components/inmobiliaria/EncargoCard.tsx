@@ -27,12 +27,30 @@ export const EncargoCard: React.FC<EncargoCardProps> = ({ encargo }) => {
                 </span>
             </div>
 
-            <h3 className="text-lg font-bold mb-1">
-                {encargo.priceMax ? `Hasta ${encargo.priceMax.toLocaleString()} €` : 'Presupuesto a consultar'}
+            <h3 className="text-lg font-bold mb-2 text-[var(--color-primary)]">
+                {encargo.type && <span className="mr-2">{encargo.type}</span>}
+                {encargo.priceMax ? `hasta ${encargo.priceMax.toLocaleString()} €` : 'Presupuesto Flexible'}
             </h3>
-            <p className="text-sm text-[var(--color-text-light)] mb-3">📍 Zona: {encargo.zone}</p>
 
-            <p className="text-sm text-[var(--color-text)] italic">
+            <div className="flex flex-wrap gap-3 mb-4 text-sm text-[var(--color-text-light)]">
+                {encargo.zone && (
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                        📍 {encargo.zone}
+                    </span>
+                )}
+                {encargo.bedrooms && (
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                        🛏️ {encargo.bedrooms}+ hab
+                    </span>
+                )}
+                {encargo.bathrooms && (
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                        🚿 {encargo.bathrooms}+ baños
+                    </span>
+                )}
+            </div>
+
+            <p className="text-sm text-[var(--color-text)] italic line-clamp-4 leading-relaxed bg-[#F9F9F9] p-3 rounded-lg border border-[#F0F0F0]">
                 "{encargo.description}"
             </p>
         </Card>

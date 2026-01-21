@@ -154,11 +154,27 @@ export const PropertyFormPage: React.FC = () => {
             // but for now appending is acceptable.
             const finalImageUrls = [...existingUrls, ...uploadedGalleryUrls];
 
+            const finalImageUrls = [...existingUrls, ...uploadedGalleryUrls];
+
+            // 3. Prepare and Sanitize Data
+            // Firestore dislikes undefined/NaN, so we safeguard everything
+            const safeNumber = (num: any) => (isNaN(Number(num)) ? 0 : Number(num));
+
             const propertyData: PropertyFormData = {
                 ...formData,
+                price: safeNumber(formData.price),
+                area: safeNumber(formData.area),
+                bedrooms: safeNumber(formData.bedrooms),
+                bathrooms: safeNumber(formData.bathrooms),
+                location: {
+                    lat: safeNumber(formData.location?.lat),
+                    lng: safeNumber(formData.location?.lng)
+                },
                 mainImage: mainImageUrl,
                 images: finalImageUrls
             };
+
+            console.log("Saving payload:", propertyData);
 
 
 
@@ -176,10 +192,9 @@ export const PropertyFormPage: React.FC = () => {
         } catch (error: any) {
             console.error('Error saving property FULL:', error);
             // Show the actual error message if available
-            const errorMessage = error.message || error.toString();
-            alert(`Error al guardar: ${errorMessage}`);
         } finally {
-            setLoading(false); // Ensure this is always called
+            console.log("Saving process finished (success or error).");
+            setLoading(false);
         }
     };
 
