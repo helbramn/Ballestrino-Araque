@@ -514,9 +514,10 @@ export const PropertyFormPage: React.FC = () => {
                                     {imagePreviews.map((preview, index) => (
                                         <div key={index} className="relative group">
                                             <img
-                                                src={preview}
+                                                src={transformDriveLink(preview)}
                                                 alt={`Preview ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-lg border-2 border-[var(--color-border)] bg-gray-100"
+                                                referrerPolicy="no-referrer"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image';
                                                 }}
