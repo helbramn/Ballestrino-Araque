@@ -427,22 +427,22 @@ export const PropertyFormPage: React.FC = () => {
                                 {mainImageInfo.preview && (
                                     <div className="w-24 h-24 relative rounded-lg overflow-hidden border bg-gray-200 shrink-0">
                                         <img
-                                            }}
+                                            src={transformDriveLink(mainImageInfo.preview)}
+                                            alt="Vista previa"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setMainImageFile(null);
-                                                setMainImagePreview('');
+                                                setMainImageInfo({ file: null, preview: '' });
                                                 setFormData(prev => ({ ...prev, mainImage: '' }));
                                             }}
-                                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                                            title="Eliminar imagen"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <X className="w-3 h-3 text-red-500" />
                                         </button>
-                                        <span className="absolute bottom-2 left-2 bg-[var(--color-primary)] text-white text-xs px-2 py-1 rounded">
-                                            Portada
-                                        </span>
                                     </div>
                                 ) : (
                                 <div className="w-64 h-40 border-2 border-dashed border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
