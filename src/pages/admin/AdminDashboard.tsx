@@ -124,6 +124,11 @@ export const AdminDashboard: React.FC = () => {
                                                 src={property.mainImage}
                                                 alt={property.title}
                                                 className="w-full h-full object-cover"
+                                                referrerPolicy="no-referrer"
+                                                onError={(e) => {
+                                                    // console.warn('Image failed to load:', property.mainImage);
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
                                             />
                                         )}
                                     </div>

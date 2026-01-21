@@ -20,6 +20,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         src={property.mainImage}
                         alt={property.title}
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden'); // logic to show fallback if we had one separate, but here we can just hide
+                        }}
                     />
                 ) : (
                     <div className="h-full w-full bg-[var(--color-bg-alt)] flex items-center justify-center border border-[var(--color-border)]">
