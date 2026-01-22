@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Plus, Edit, Trash2, Home as HomeIcon, ClipboardList } from 'lucide-react';
 import { AdminEncargosList } from '../../components/admin/AdminEncargosList';
+import { transformGoogleDriveUrl } from '../../utils/imageUtils';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'properties' | 'encargos'>('properties');
@@ -121,7 +122,7 @@ export const AdminDashboard: React.FC = () => {
                                     <div className="w-full md:w-32 h-48 md:h-32 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 rounded-lg overflow-hidden flex-shrink-0">
                                         {property.mainImage && (
                                             <img
-                                                src={property.mainImage}
+                                                src={transformGoogleDriveUrl(property.mainImage)}
                                                 alt={property.title}
                                                 className="w-full h-full object-cover"
                                                 referrerPolicy="no-referrer"
