@@ -5,6 +5,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { FavoriteButton } from '../ui/FavoriteButton';
 import { MapPin, Ruler, BedDouble, Bath } from 'lucide-react';
+import { transformGoogleDriveUrl } from '../../utils/imageUtils';
 
 interface PropertyCardProps {
     property: Property;
@@ -17,7 +18,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             <Link to={`/propiedad/${property.id}`} className="block relative mb-4 aspect-[4/3] overflow-hidden rounded-[var(--radius-md)]">
                 {property.mainImage ? (
                     <img
-                        src={property.mainImage}
+                        src={transformGoogleDriveUrl(property.mainImage)}
                         alt={property.title}
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         referrerPolicy="no-referrer"

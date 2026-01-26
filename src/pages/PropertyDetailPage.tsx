@@ -9,6 +9,7 @@ import { FavoriteButton } from '../components/ui/FavoriteButton';
 import { SEOHeaders } from '../components/seo/SEOHeaders';
 import { ArrowLeft, MapPin, Home, Bed, Bath, Maximize2, Mail, Phone } from 'lucide-react';
 import type { Property } from '../types/property';
+import { transformGoogleDriveUrl } from '../utils/imageUtils';
 
 export const PropertyDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -69,11 +70,11 @@ export const PropertyDetailPage: React.FC = () => {
         opcion_compra: 'Alquiler con opción a compra'
     };
 
-    // Fallback image logic
-    const displayImage = property.mainImage || '';
+    // Fallback image logic - Transform Drive URLs on-the-fly
+    const displayImage = transformGoogleDriveUrl(property.mainImage || '');
 
-    // Fallback gallery images
-    const displayImages = property.images || [];
+    // Fallback gallery images - Transform Drive URLs
+    const displayImages = (property.images || []).map(transformGoogleDriveUrl);
 
     const schema = {
         "@context": "https://schema.org",

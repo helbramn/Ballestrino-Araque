@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { transformGoogleDriveUrl } from '../../utils/imageUtils';
 
 type PropertyFormData = Omit<Property, 'id'>;
 
@@ -55,22 +56,6 @@ export const PropertyFormPage: React.FC = () => {
             console.error('Error loading property:', error);
             alert('Error al cargar la propiedad');
         }
-    };
-
-    // Helper to convert Google Drive links to direct images
-    const transformDriveLink = (url: string) => {
-        if (!url) return '';
-        try {
-            // Match /d/ID or id=ID
-            const idMatch = url.match(/\/d\/([-a-zA-Z0-9_]+)/) || url.match(/id=([-a-zA-Z0-9_]+)/);
-            if (idMatch && idMatch[1]) {
-                // Use the thumbnail API which is more robust for public files than direct lh3 links
-                return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
-            }
-        } catch (e) {
-            console.error("Error parsing URL", e);
-        }
-        return url;
     };
 
     const handleMainImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,13 +130,13 @@ export const PropertyFormPage: React.FC = () => {
 
             const safeNumber = (num: any) => (isNaN(Number(num)) ? 0 : Number(num));
 
-            const finalMainImage = transformDriveLink(mainImageInfo.preview || '');
+            const finalMainImage = transformGoogleDriveUrl(mainImageInfo.preview || '');
 
             // Combine gallery URLs (formData.images) and any legacy previews if needed
             // For now, just use formData.images which edits the URLs directly
             const finalGalleryImages = (formData.images || [])
                 .filter(url => url && url.trim() !== '')
-                .map(transformDriveLink);
+                .map(transformGoogleDriveUrl);
 
             const propertyData: PropertyFormData = {
                 ...formData,
@@ -435,7 +420,7 @@ export const PropertyFormPage: React.FC = () => {
                                 {mainImageInfo.preview && (
                                     <div className="w-24 h-24 relative rounded-lg overflow-hidden border bg-gray-200 shrink-0">
                                         <img
-                                            src={transformDriveLink(mainImageInfo.preview)}
+                                            src={transformGoogleDriveUrl(mainImageInfo.preview)}
                                             alt="Vista previa"
                                             className="w-full h-full object-cover"
                                             referrerPolicy="no-referrer"
@@ -514,7 +499,7 @@ export const PropertyFormPage: React.FC = () => {
                                     {imagePreviews.map((preview, index) => (
                                         <div key={index} className="relative group">
                                             <img
-                                                src={transformDriveLink(preview)}
+                                                src={transformGoogleDriveUrl(preview)}
                                                 alt={`Preview ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-lg border-2 border-[var(--color-border)] bg-gray-100"
                                                 referrerPolicy="no-referrer"
