@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { getPropertyById, createProperty, updateProperty, uploadPropertyImages } from '../../services/propertyService';
+import { getPropertyById, createProperty, updateProperty } from '../../services/propertyService';
 import type { Property } from '../../types/property';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -14,7 +14,6 @@ export const PropertyFormPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     // New state for URL-based main image
     const [mainImageInfo, setMainImageInfo] = useState<{ file: File | null, preview: string }>({ file: null, preview: '' });
@@ -50,28 +49,12 @@ export const PropertyFormPage: React.FC = () => {
                 const { id: _, ...propertyData } = property;
                 setFormData(propertyData);
                 setImagePreviews(property.images || []);
-                setMainImagePreview(property.mainImage || '');
+                setMainImageInfo({ file: null, preview: property.mainImage || '' });
             }
         } catch (error) {
             console.error('Error loading property:', error);
             alert('Error al cargar la propiedad');
         }
-    };
-
-    const handleMainImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setMainImageInfo({ file, preview: '' }); // Clear URL preview if file is selected
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            // For files, we set the preview to the base64 result
-            // But our UI logic might favor one or the other.
-            // Let's update mainImageInfo with the preview.
-            setMainImageInfo({ file, preview: reader.result as string });
-        };
-        reader.readAsDataURL(file);
     };
 
     const handleMainImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,31 +78,15 @@ export const PropertyFormPage: React.FC = () => {
         // Given directives, let's keep it simple.
     };
 
-    const handleAddGalleryUrl = () => {
-        setFormData(prev => ({
-            ...prev,
-            images: [...(prev.images || []), '']
-        }));
-    };
-
-    const handleGalleryUrlChange = (index: number, value: string) => {
-        const newImages = [...(formData.images || [])];
-        newImages[index] = value;
-        setFormData(prev => ({ ...prev, images: newImages }));
-    };
-
-    const removeGalleryImage = (index: number) => {
-        const newImages = [...(formData.images || [])];
-        newImages.splice(index, 1);
-        setFormData(prev => ({ ...prev, images: newImages }));
-    };
-
-    // Also need a removeImage function for the gallery preview UI if it uses index
+    // Function to remove image from gallery preview
     const removeImage = (index: number) => {
         const newPreviews = [...imagePreviews];
         newPreviews.splice(index, 1);
         setImagePreviews(newPreviews);
     };
+
+
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -438,17 +405,6 @@ export const PropertyFormPage: React.FC = () => {
                                             <X className="w-3 h-3 text-red-500" />
                                         </button>
                                     </div>
-                                ) : (
-                                <div className="w-64 h-40 border-2 border-dashed border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-gray-500">Subir Portada</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleMainImageFileChange}
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                    />
-                                </div>
                                 )}
                             </div>
                         </div>
@@ -655,21 +611,4 @@ export const PropertyFormPage: React.FC = () => {
     );
 };
 
-// Helper to timeout the upload promise
-const timeoutPromise = (ms: number, promise: Promise<any>) => {
-    return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-            reject(new Error(`Timeout de carga (${ms}ms) - Posible problema de conexión o permisos con Firebase Storage`));
-        }, ms);
 
-        promise
-            .then((value) => {
-                clearTimeout(timer);
-                resolve(value);
-            })
-            .catch((reason) => {
-                clearTimeout(timer);
-                reject(reason);
-            });
-    });
-};

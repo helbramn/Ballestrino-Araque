@@ -39,15 +39,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div className="flex flex-col gap-2">
                         {/* Operation Type Badge */}
                         <Badge
-                            variant={property.operation === 'opcion_compra' ? 'accent' : 'default'}
-                            className={`${property.operation === 'venta' ? 'bg-emerald-600 text-white' :
-                                property.operation === 'alquiler' ? 'bg-blue-600 text-white' :
-                                    'bg-gradient-to-r from-blue-600 to-emerald-600 text-white animate-pulse'
-                                } backdrop-blur-sm shadow-lg font-bold ${property.operation === 'opcion_compra' ? 'text-xs' : ''}`}
+                            className={`
+                                ${property.operation === 'venta'
+                                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white'
+                                    : property.operation === 'alquiler'
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                                        : 'bg-gradient-to-r from-purple-500 via-blue-500 to-emerald-500 text-white animate-pulse'
+                                } 
+                                backdrop-blur-md shadow-xl font-bold uppercase tracking-wider
+                                border-2 border-white/30 px-3 py-1.5 text-sm
+                                transition-all duration-300 hover:scale-105 hover:shadow-2xl
+                            `}
                         >
-                            {property.operation === 'venta' ? '● VENTA' :
-                                property.operation === 'alquiler' ? '● ALQUILER' :
-                                    'ALQUILER+VENTA'}
+                            {property.operation === 'venta' ? '🏷️ VENTA' :
+                                property.operation === 'alquiler' ? '🔑 ALQUILER' :
+                                    '⭐ ALQUILER CON OPCIÓN A COMPRA'}
                         </Badge>
 
                         {/* VIP Badge */}
