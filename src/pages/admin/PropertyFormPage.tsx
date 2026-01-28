@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getPropertyById, createProperty, updateProperty } from '../../services/propertyService';
+import { uploadImageToImgBB } from '../../services/imgbbService';
 import type { Property } from '../../types/property';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
-import { ArrowLeft, Save, Upload, X } from 'lucide-react';
-import { transformGoogleDriveUrl } from '../../utils/imageUtils';
+import { ArrowLeft, Save, Upload, X, Loader2 } from 'lucide-react';
 
 type PropertyFormData = Omit<Property, 'id'>;
 
@@ -14,9 +14,12 @@ export const PropertyFormPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    // New state for URL-based main image
-    const [mainImageInfo, setMainImageInfo] = useState<{ file: File | null, preview: string }>({ file: null, preview: '' });
+    const [uploadingMain, setUploadingMain] = useState(false);
+    const [uploadingGallery, setUploadingGallery] = useState(false);
+    const [mainImageUrl, setMainImageUrl] = useState('');
+    const [mainImagePreview, setMainImagePreview] = useState('');
+    const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+    const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
     const [formData, setFormData] = useState<PropertyFormData>({
         title: '',
@@ -48,8 +51,10 @@ export const PropertyFormPage: React.FC = () => {
             if (property) {
                 const { id: _, ...propertyData } = property;
                 setFormData(propertyData);
-                setImagePreviews(property.images || []);
-                setMainImageInfo({ file: null, preview: property.mainImage || '' });
+                setMainImageUrl(property.mainImage || '');
+                setMainImagePreview(property.mainImage || '');
+                setGalleryUrls(property.images || []);
+                setGalleryPreviews(property.images || []);
             }
         } catch (error) {
             console.error('Error loading property:', error);
@@ -57,34 +62,78 @@ export const PropertyFormPage: React.FC = () => {
         }
     };
 
-    const handleMainImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMainImageInfo({
-            file: null,
-            preview: e.target.value
-        });
+    // Handle main image file upload to ImgBB
+    const handleMainImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setUploadingMain(true);
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setMainImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+
+            // Upload to ImgBB
+            const url = await uploadImageToImgBB(file);
+            setMainImageUrl(url);
+            console.log('Main image uploaded:', url);
+        } catch (error) {
+            console.error('Error uploading main image:', error);
+            alert('Error al subir la imagen principal. Por favor intenta de nuevo.');
+            setMainImagePreview('');
+        } finally {
+            setUploadingMain(false);
+        }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Handle gallery images upload to ImgBB
+    const handleGalleryImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length > 5) {
-            alert('Máximo 5 imágenes');
+            alert('Máximo 5 imágenes para la galería');
             return;
         }
-        // Logic for gallery files would go here if we were implementing mixed upload
-        // For now, let's just warn or handle them if needed. 
-        // User wants URL mostly, but kept file input hidden?
-        // We will ignore file gallery upload based on previous context removing it, 
-        // or just implement basic preview for them if requested.
-        // Given directives, let's keep it simple.
+
+        if (files.length === 0) return;
+
+        try {
+            setUploadingGallery(true);
+
+            // Create previews
+            const previews: string[] = [];
+            for (const file of files) {
+                const reader = new FileReader();
+                await new Promise((resolve) => {
+                    reader.onloadend = () => {
+                        previews.push(reader.result as string);
+                        resolve(null);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            setGalleryPreviews(prev => [...prev, ...previews]);
+
+            // Upload all files to ImgBB
+            const uploadPromises = files.map(file => uploadImageToImgBB(file));
+            const urls = await Promise.all(uploadPromises);
+            setGalleryUrls(prev => [...prev, ...urls]);
+            console.log('Gallery images uploaded:', urls);
+        } catch (error) {
+            console.error('Error uploading gallery images:', error);
+            alert('Error al subir imágenes de la galería. Por favor intenta de nuevo.');
+        } finally {
+            setUploadingGallery(false);
+        }
     };
 
-    // Function to remove image from gallery preview
-    const removeImage = (index: number) => {
-        const newPreviews = [...imagePreviews];
-        newPreviews.splice(index, 1);
-        setImagePreviews(newPreviews);
+    // Remove image from gallery
+    const removeGalleryImage = (index: number) => {
+        setGalleryUrls(prev => prev.filter((_, i) => i !== index));
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
     };
-
 
 
 
@@ -97,14 +146,6 @@ export const PropertyFormPage: React.FC = () => {
 
             const safeNumber = (num: any) => (isNaN(Number(num)) ? 0 : Number(num));
 
-            const finalMainImage = transformGoogleDriveUrl(mainImageInfo.preview || '');
-
-            // Combine gallery URLs (formData.images) and any legacy previews if needed
-            // For now, just use formData.images which edits the URLs directly
-            const finalGalleryImages = (formData.images || [])
-                .filter(url => url && url.trim() !== '')
-                .map(transformGoogleDriveUrl);
-
             const propertyData: PropertyFormData = {
                 ...formData,
                 price: safeNumber(formData.price),
@@ -116,8 +157,8 @@ export const PropertyFormPage: React.FC = () => {
                     lng: safeNumber(formData.location?.lng),
                     address: formData.location?.address || ''
                 },
-                mainImage: finalMainImage,
-                images: finalGalleryImages
+                mainImage: mainImageUrl,
+                images: galleryUrls
             };
 
             if (id) {
@@ -137,17 +178,11 @@ export const PropertyFormPage: React.FC = () => {
         }
     };
 
-    // Assuming AdminLayout and Select are available components
-    // If not, replace AdminLayout with a simple div and Select with a standard <select> element.
-    // For this response, I'll keep the user's provided JSX structure.
-    if (loading && !formData.title && !id) { // Added condition to prevent showing loading on initial edit load
+    if (loading && !formData.title && !id) {
         return <div className="p-8 text-center text-[var(--color-primary)]">Cargando datos...</div>;
     }
 
     return (
-        // Assuming AdminLayout is a component that wraps the content
-        // If not, replace with a simple div or adjust as per your project's structure.
-        // <AdminLayout title={id ? "Editar Propiedad" : "Nueva Propiedad"}>
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
                 <Link to="/admin">
@@ -209,21 +244,6 @@ export const PropertyFormPage: React.FC = () => {
                         <div className="grid md:grid-cols-3 gap-6">
                             <div>
                                 <label className="block text-sm font-medium mb-2">Tipo *</label>
-                                {/* Assuming Select component is available, otherwise use native <select> */}
-                                {/* <Select
-                                    label="Tipo"
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                    options={[
-                                        { value: 'Casa', label: 'Casa' },
-                                        { value: 'Apartamento', label: 'Apartamento' },
-                                        { value: 'Casa Rural', label: 'Casa Rural' },
-                                        { value: 'Chalet', label: 'Chalet' },
-                                        { value: 'Terreno', label: 'Terreno' },
-                                        { value: 'Local Comercial', label: 'Local Comercial' },
-                                        { value: 'Finca', label: 'Finca' }
-                                    ]}
-                                /> */}
                                 <select
                                     className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                     value={formData.type}
@@ -242,17 +262,6 @@ export const PropertyFormPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">Operación *</label>
-                                {/* Assuming Select component is available, otherwise use native <select> */}
-                                {/* <Select
-                                    label="Operación"
-                                    value={formData.operation}
-                                    onChange={(e) => setFormData({ ...formData, operation: e.target.value as 'venta' | 'alquiler' | 'opcion_compra' })}
-                                    options={[
-                                        { value: 'venta', label: 'Venta' },
-                                        { value: 'alquiler', label: 'Alquiler' },
-                                        { value: 'opcion_compra', label: 'Alquiler con Opción a Compra' }
-                                    ]}
-                                /> */}
                                 <select
                                     className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                     value={formData.operation}
@@ -368,36 +377,54 @@ export const PropertyFormPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Imágenes (URL) */}
+                    {/* Imágenes con ImgBB */}
                     <div>
                         <h2 className="text-xl font-semibold mb-4 text-[var(--color-primary)]">
-                            Imágenes (Enlaces)
+                            Imágenes
                         </h2>
+                        <p className="text-sm text-gray-600 mb-4">
+                            ✨ Subida directa y gratuita - Las imágenes se alojan automáticamente en ImgBB
+                        </p>
 
-                        {/* Imagen Principal URL */}
+                        {/* Imagen Principal */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Imagen Principal (URL)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Imagen Principal *</label>
                             <div className="flex gap-4 items-start">
-                                <Input
-                                    value={mainImageInfo.preview || ''}
-                                    onChange={handleMainImageUrlChange}
-                                    placeholder="Pega aquí el enlace de Google Drive o de la imagen..."
-                                    className="flex-1"
-                                />
-                                {mainImageInfo.preview && (
-                                    <div className="w-24 h-24 relative rounded-lg overflow-hidden border bg-gray-200 shrink-0">
+                                <div className="flex-1">
+                                    <label className="cursor-pointer block">
+                                        <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-4 text-center hover:bg-gray-50 transition-colors">
+                                            <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--color-primary)]" />
+                                            <span className="text-sm text-[var(--color-primary)] font-semibold">
+                                                {uploadingMain ? 'Subiendo...' : 'Click para subir imagen principal'}
+                                            </span>
+                                            {uploadingMain && (
+                                                <div className="mt-2">
+                                                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-[var(--color-primary)]" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleMainImageChange}
+                                            className="hidden"
+                                            disabled={uploadingMain}
+                                        />
+                                    </label>
+                                </div>
+                                {mainImagePreview && (
+                                    <div className="w-32 h-32 relative rounded-lg overflow-hidden border bg-gray-200 shrink-0">
                                         <img
-                                            src={transformGoogleDriveUrl(mainImageInfo.preview)}
+                                            src={mainImagePreview}
                                             alt="Vista previa"
                                             className="w-full h-full object-cover"
                                             referrerPolicy="no-referrer"
-                                            onError={(e) => (e.currentTarget.style.display = 'none')}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setMainImageInfo({ file: null, preview: '' });
-                                                setFormData(prev => ({ ...prev, mainImage: '' }));
+                                                setMainImageUrl('');
+                                                setMainImagePreview('');
                                             }}
                                             className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
                                             title="Eliminar imagen"
@@ -409,63 +436,46 @@ export const PropertyFormPage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Galería de Imágenes */}
                         <div className="space-y-4">
                             <label className="block text-sm font-medium">Galería de Imágenes</label>
 
-                            {/* URL Input for Gallery */}
-                            <div className="flex gap-2 mb-4">
-                                <Input
-                                    id="gallery-url-input"
-                                    placeholder="🔗 Pega enlace para galería y pulsa enter..."
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            const input = e.currentTarget as HTMLInputElement;
-                                            const url = input.value;
-                                            if (url) {
-                                                setImagePreviews(prev => [...prev, url]);
-                                                // We don't verify if it's a file or string here, just add to previews. 
-                                                // In handleSubmit, we'll combine existing strings with new file uploads.
-                                                // Wait, formData.images normally holds the final URLs. 
-                                                // So we should add it to a tracking state or simple append to formData.images if we were syncing real-time,
-                                                // but handleSubmit rebuilds it. 
-                                                // Let's ensure handleSubmit respects previews that are already strings (URLs) and not files.
-                                                input.value = '';
-                                            }
-                                        }
-                                    }}
+                            <label className="cursor-pointer block">
+                                <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-8 text-center hover:bg-gray-50 transition-colors">
+                                    <Upload className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-light)]" />
+                                    <span className="text-[var(--color-primary)] font-semibold">
+                                        {uploadingGallery ? 'Subiendo imágenes...' : 'Click para seleccionar imágenes'}
+                                    </span>
+                                    <p className="text-sm text-[var(--color-text-light)] mt-2">
+                                        Máximo 5 imágenes
+                                    </p>
+                                    {uploadingGallery && (
+                                        <Loader2 className="w-8 h-8 animate-spin mx-auto mt-4 text-[var(--color-primary)]" />
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleGalleryImagesChange}
+                                    className="hidden"
+                                    disabled={uploadingGallery || galleryUrls.length >= 5}
                                 />
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        const input = document.getElementById('gallery-url-input') as HTMLInputElement;
-                                        if (input && input.value) {
-                                            setImagePreviews(prev => [...prev, input.value]);
-                                            input.value = '';
-                                        }
-                                    }}
-                                >
-                                    Añadir
-                                </Button>
-                            </div>
+                            </label>
 
-                            {imagePreviews.length > 0 && (
+                            {galleryPreviews.length > 0 && (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {imagePreviews.map((preview, index) => (
+                                    {galleryPreviews.map((preview, index) => (
                                         <div key={index} className="relative group">
                                             <img
-                                                src={transformGoogleDriveUrl(preview)}
+                                                src={preview}
                                                 alt={`Preview ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-lg border-2 border-[var(--color-border)] bg-gray-100"
                                                 referrerPolicy="no-referrer"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image';
-                                                }}
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() => removeImage(index)}
+                                                onClick={() => removeGalleryImage(index)}
                                                 className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <X className="w-4 h-4" />
@@ -474,25 +484,6 @@ export const PropertyFormPage: React.FC = () => {
                                     ))}
                                 </div>
                             )}
-
-                            <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-8 text-center">
-                                <Upload className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-light)]" />
-                                <label className="cursor-pointer">
-                                    <span className="text-[var(--color-primary)] font-semibold hover:underline">
-                                        Click para seleccionar imágenes
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
-                                </label>
-                                <p className="text-sm text-[var(--color-text-light)] mt-2">
-                                    Máximo 5 imágenes. La primera será la imagen principal.
-                                </p>
-                            </div>
                         </div>
                     </div>
 
@@ -599,16 +590,9 @@ export const PropertyFormPage: React.FC = () => {
                             </Button>
                         </Link>
                     </div>
-
-                    {imagePreviews.length === 0 && (
-                        <p className="text-sm text-gray-500 mt-4">
-                            ℹ️ Modo diagnóstico: Se permite guardar sin imágenes para probar la conexión.
-                        </p>
-                    )}
                 </Card>
             </form>
-        </div >
+        </div>
     );
 };
-
 
