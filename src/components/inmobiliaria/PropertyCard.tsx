@@ -78,24 +78,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         {/* Dark overlay background */}
                         <div className="absolute inset-0 bg-black/40 z-20"></div>
 
-                        {/* Diagonal ribbon - transparent fill with borders */}
+                        {/* Diagonal ribbon - EXACTLY like generated image */}
                         <div className="absolute inset-0 flex items-center justify-center z-20 overflow-hidden">
                             <div
                                 className="transform -rotate-12 w-[200%] relative"
                                 style={{
                                     height: '80px',
                                     border: property.status === 'vendida'
-                                        ? '5px solid rgba(16, 185, 129, 1)'
-                                        : '5px solid rgba(59, 130, 246, 1)',
-                                    background: property.status === 'vendida'
-                                        ? 'rgba(16, 185, 129, 0.2)'
-                                        : 'rgba(59, 130, 246, 0.2)',
-                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                        ? '5px solid #10B981'
+                                        : '5px solid #3B82F6',
+                                    background: 'transparent',
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                                 }}
                             >
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <p className="text-white font-bold text-2xl md:text-3xl uppercase tracking-[0.3em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                                        {property.status === 'vendida' ? '✓ Vendido' : '✓ Alquilado'}
+                                    <p
+                                        className="font-bold text-2xl md:text-3xl uppercase tracking-[0.3em]"
+                                        style={{
+                                            color: property.status === 'vendida' ? '#10B981' : '#3B82F6',
+                                            textShadow: '2px 2px 4px rgba(0,0,0,0.5), -1px -1px 2px rgba(255,255,255,0.1)'
+                                        }}
+                                    >
+                                        {property.status === 'vendida' ? '✓ VENDIDO' : '✓ ALQUILADO'}
                                     </p>
                                 </div>
                             </div>
