@@ -78,20 +78,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         {/* Dark overlay background */}
                         <div className="absolute inset-0 bg-black/40 z-20"></div>
 
-                        {/* Diagonal ribbon */}
+                        {/* Diagonal ribbon - corner to corner */}
                         <div className="absolute inset-0 flex items-center justify-center z-20 overflow-hidden">
-                            <div className={`
-                                ${property.status === 'vendida'
-                                    ? 'bg-gradient-to-r from-emerald-500/90 via-emerald-600/95 to-emerald-500/90'
-                                    : 'bg-gradient-to-r from-blue-500/90 via-blue-600/95 to-blue-500/90'
-                                }
-                                transform -rotate-12 
-                                w-[200%] py-4 md:py-6
-                                shadow-2xl
-                                backdrop-blur-sm
-                            `}>
-                                <div className="text-center">
-                                    <p className="text-white font-bold text-2xl md:text-3xl uppercase tracking-[0.3em] drop-shadow-lg">
+                            <div
+                                className="transform -rotate-12 w-[200%] relative"
+                                style={{
+                                    background: property.status === 'vendida'
+                                        ? 'linear-gradient(to bottom, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.6) 50%, rgba(16, 185, 129, 0.95) 100%)'
+                                        : 'linear-gradient(to bottom, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.6) 50%, rgba(59, 130, 246, 0.95) 100%)',
+                                    padding: '1.5rem 0',
+                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 -2px 10px rgba(255, 255, 255, 0.2), inset 0 2px 10px rgba(255, 255, 255, 0.2)'
+                                }}
+                            >
+                                <div className="text-center backdrop-blur-sm">
+                                    <p className="text-white font-bold text-2xl md:text-3xl uppercase tracking-[0.3em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                                         {property.status === 'vendida' ? '✓ Vendido' : '✓ Alquilado'}
                                     </p>
                                 </div>
