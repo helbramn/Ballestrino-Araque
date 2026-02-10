@@ -72,21 +72,32 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <FavoriteButton propertyId={property.id} />
                 </div>
 
-                {/* VENDIDO/ALQUILADO Overlay */}
+                {/* VENDIDO/ALQUILADO Ribbon/Banner */}
                 {(property.status === 'vendida' || property.status === 'alquilada') && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-20">
-                        <div className={`
-                            ${property.status === 'vendida'
-                                ? 'bg-gradient-to-r from-green-600 to-green-700'
-                                : 'bg-gradient-to-r from-blue-600 to-blue-700'
-                            }
-                            text-white font-black text-3xl md:text-4xl px-8 py-4 rounded-2xl 
-                            shadow-2xl border-4 border-white/30 transform rotate-[-5deg]
-                            uppercase tracking-widest
-                        `}>
-                            {property.status === 'vendida' ? '✓ VENDIDO' : '✓ ALQUILADO'}
+                    <>
+                        {/* Dark overlay background */}
+                        <div className="absolute inset-0 bg-black/40 z-20"></div>
+
+                        {/* Diagonal ribbon */}
+                        <div className="absolute inset-0 flex items-center justify-center z-20 overflow-hidden">
+                            <div className={`
+                                ${property.status === 'vendida'
+                                    ? 'bg-gradient-to-r from-emerald-500/90 via-emerald-600/95 to-emerald-500/90'
+                                    : 'bg-gradient-to-r from-blue-500/90 via-blue-600/95 to-blue-500/90'
+                                }
+                                transform -rotate-12 
+                                w-[200%] py-4 md:py-6
+                                shadow-2xl
+                                backdrop-blur-sm
+                            `}>
+                                <div className="text-center">
+                                    <p className="text-white font-bold text-2xl md:text-3xl uppercase tracking-[0.3em] drop-shadow-lg">
+                                        {property.status === 'vendida' ? '✓ Vendido' : '✓ Alquilado'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </>
                 )}
             </Link>
 
