@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getProperties, deleteProperty } from '../../services/propertyService';
+import { getProperties, deleteProperty, updatePropertyStatus } from '../../services/propertyService';
 import type { Property } from '../../types/property';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { Plus, Edit, Trash2, Home as HomeIcon, ClipboardList } from 'lucide-react';
+import { Plus, Edit, Trash2, Home as HomeIcon, ClipboardList, CheckCircle, RotateCcw } from 'lucide-react';
 import { AdminEncargosList } from '../../components/admin/AdminEncargosList';
 import { transformGoogleDriveUrl } from '../../utils/imageUtils';
 
@@ -44,6 +44,24 @@ export const AdminDashboard: React.FC = () => {
         } catch (error: any) {
             console.error('Error deleting property:', error);
             alert(`Error al eliminar la propiedad: ${error.message || 'Desconocido'}`);
+        }
+    };
+
+    const handleStatusChange = async (property: Property, newStatus: 'disponible' | 'vendida' | 'alquilada') => {
+        const statusText = newStatus === 'vendida' ? 'Vendida' : newStatus === 'alquilada' ? 'Alquilada' : 'Disponible';
+        const actionText = newStatus === 'disponible' ? `reactivar "${property.title}"` : `marcar "${property.title}" como ${statusText}`;
+
+        if (!window.confirm(`¿Estás seguro de ${actionText}?`)) {
+            return;
+        }
+
+        try {
+            await updatePropertyStatus(property.id, newStatus);
+            console.log(`Propiedad marcada como ${statusText}`);
+            await loadProperties();
+        } catch (error: any) {
+            console.error('Error updating property status:', error);
+            alert(`Error al actualizar el estado: ${error.message || 'Desconocido'}`);
         }
     };
 
@@ -137,17 +155,54 @@ export const AdminDashboard: React.FC = () => {
                                     {/* Info */}
                                     <div className="flex-1 w-full">
                                         <div className="flex flex-col md:flex-row justify-between items-start gap-3 mb-3">
-                                            <div>
-                                                <h3 className="font-semibold text-xl mb-1">{property.title}</h3>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="font-semibold text-xl">{property.title}</h3>
+                                                    {(property.status === 'vendida' || property.status === 'alquilada') && (
+                                                        <span className={`text-xs font-bold px-2 py-1 rounded ${property.status === 'vendida'
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-blue-100 text-blue-800'
+                                                            }`}>
+                                                            {property.status === 'vendida' ? 'VENDIDA' : 'ALQUILADA'}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-sm text-[var(--color-text-light)]">{property.zone}</p>
                                             </div>
-                                            <div className="flex gap-2 w-full md:w-auto">
+                                            <div className="flex flex-wrap gap-2 w-full md:w-auto">
                                                 <Link to={`/admin/properties/${property.id}/edit`} className="flex-1 md:flex-none">
                                                     <Button variant="secondary" size="sm" className="flex items-center justify-center gap-2 w-full">
                                                         <Edit className="w-4 h-4" />
                                                         Editar
                                                     </Button>
                                                 </Link>
+
+                                                {/* Status button */}
+                                                {(!property.status || property.status === 'disponible') ? (
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const isRental = property.operation === 'alquiler' || property.operation === 'opcion_compra';
+                                                            handleStatusChange(property, isRental ? 'alquilada' : 'vendida');
+                                                        }}
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 text-green-600 hover:bg-green-50"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                        {property.operation === 'alquiler' || property.operation === 'opcion_compra' ? 'Alquilada' : 'Vendida'}
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() => handleStatusChange(property, 'disponible')}
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 text-blue-600 hover:bg-blue-50"
+                                                    >
+                                                        <RotateCcw className="w-4 h-4" />
+                                                        Reactivar
+                                                    </Button>
+                                                )}
+
                                                 <Button
                                                     variant="secondary"
                                                     size="sm"

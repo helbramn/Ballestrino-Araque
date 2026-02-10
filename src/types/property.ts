@@ -21,4 +21,5 @@ export interface Property {
     town?: string;
     energyCertificate?: string;
     isVIP?: boolean;
+    status?: 'disponible' | 'vendida' | 'alquilada';
 }

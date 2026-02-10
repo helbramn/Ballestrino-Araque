@@ -71,6 +71,23 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
 
                     <FavoriteButton propertyId={property.id} />
                 </div>
+
+                {/* VENDIDO/ALQUILADO Overlay */}
+                {(property.status === 'vendida' || property.status === 'alquilada') && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-20">
+                        <div className={`
+                            ${property.status === 'vendida'
+                                ? 'bg-gradient-to-r from-green-600 to-green-700'
+                                : 'bg-gradient-to-r from-blue-600 to-blue-700'
+                            }
+                            text-white font-black text-3xl md:text-4xl px-8 py-4 rounded-2xl 
+                            shadow-2xl border-4 border-white/30 transform rotate-[-5deg]
+                            uppercase tracking-widest
+                        `}>
+                            {property.status === 'vendida' ? '✓ VENDIDO' : '✓ ALQUILADO'}
+                        </div>
+                    </div>
+                )}
             </Link>
 
             {/* Content */}

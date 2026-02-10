@@ -80,6 +80,18 @@ export const updateProperty = async (id: string, propertyData: Partial<Property>
     });
 };
 
+// Update property status (mark as sold/rented)
+export const updatePropertyStatus = async (
+    id: string,
+    status: 'disponible' | 'vendida' | 'alquilada'
+): Promise<void> => {
+    const propertyRef = doc(db, PROPERTIES_COLLECTION, id);
+    await updateDoc(propertyRef, {
+        status,
+        updatedAt: serverTimestamp()
+    });
+};
+
 // Delete property
 export const deleteProperty = async (id: string): Promise<void> => {
     const propertyRef = doc(db, PROPERTIES_COLLECTION, id);
