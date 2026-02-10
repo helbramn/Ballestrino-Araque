@@ -78,20 +78,27 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         {/* Dark overlay background */}
                         <div className="absolute inset-0 bg-black/40 z-20"></div>
 
-                        {/* Diagonal ribbon - corner to corner */}
+                        {/* Diagonal ribbon - only borders */}
                         <div className="absolute inset-0 flex items-center justify-center z-20 overflow-hidden">
                             <div
                                 className="transform -rotate-12 w-[200%] relative"
                                 style={{
-                                    background: property.status === 'vendida'
-                                        ? 'linear-gradient(to bottom, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.6) 50%, rgba(16, 185, 129, 0.95) 100%)'
-                                        : 'linear-gradient(to bottom, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.6) 50%, rgba(59, 130, 246, 0.95) 100%)',
-                                    padding: '1.5rem 0',
-                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 -2px 10px rgba(255, 255, 255, 0.2), inset 0 2px 10px rgba(255, 255, 255, 0.2)'
+                                    height: '80px',
+                                    border: property.status === 'vendida'
+                                        ? '5px solid rgba(16, 185, 129, 1)'
+                                        : '5px solid rgba(59, 130, 246, 1)',
+                                    background: 'transparent',
+                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                                 }}
                             >
-                                <div className="text-center backdrop-blur-sm">
-                                    <p className="text-white font-bold text-2xl md:text-3xl uppercase tracking-[0.3em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <p
+                                        className="font-bold text-2xl md:text-3xl uppercase tracking-[0.3em]"
+                                        style={{
+                                            color: property.status === 'vendida' ? 'rgba(16, 185, 129, 1)' : 'rgba(59, 130, 246, 1)',
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.5)'
+                                        }}
+                                    >
                                         {property.status === 'vendida' ? '✓ Vendido' : '✓ Alquilado'}
                                     </p>
                                 </div>
