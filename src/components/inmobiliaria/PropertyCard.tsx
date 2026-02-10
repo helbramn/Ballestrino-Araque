@@ -78,12 +78,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         {/* Dark overlay background */}
                         <div className="absolute inset-0 bg-black/40 z-20"></div>
 
-                        {/* Diagonal ribbon - EXACTLY like generated image */}
-                        <div className="absolute inset-0 flex items-center justify-center z-20 overflow-hidden">
+                        {/* Diagonal ribbon - corner to corner */}
+                        <div className="absolute inset-0 z-20 overflow-hidden">
                             <div
-                                className="transform -rotate-12 w-[200%] relative"
+                                className="absolute"
                                 style={{
-                                    height: '80px',
+                                    bottom: 0,
+                                    left: 0,
+                                    width: '141.42%', // sqrt(2) * 100% for diagonal
+                                    height: '100px',
+                                    transformOrigin: 'bottom left',
+                                    transform: 'rotate(23deg)', // Angle for 4:3 aspect ratio diagonal
                                     border: property.status === 'vendida'
                                         ? '5px solid #10B981'
                                         : '5px solid #3B82F6',
